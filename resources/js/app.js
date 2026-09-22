@@ -1,18 +1,118 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
 
+const APP_NAME_KEY = 'customer_app_name';
+
+function sanitizeAppName(name) {
+    const value = String(name || '').replace(/\s+/g, ' ').trim();
+
+    if (value === '' || value.length > 80) {
+        return '';
+    }
+
+    if (['maxwallet', 'max wallet'].includes(value.toLowerCase())) {
+        return '';
+    }
+
+    return value;
+}
+
+function readStoredAppName() {
+    try {
+        return sanitizeAppName(window.localStorage.getItem(APP_NAME_KEY));
+    } catch (e) {
+        return '';
+    }
+}
+
+window.persistCustomerAppName = function persistCustomerAppName(name) {
+    const value = sanitizeAppName(name);
+
+    if (! value) {
+        return;
+    }
+
+    try {
+        window.localStorage.setItem(APP_NAME_KEY, value);
+    } catch (e) {
+        // Ignore private-mode storage failures.
+    }
+};
+
+Alpine.data('storedAppBrand', (serverName = '') => ({
+    name: '',
+    init() {
+        const fromServer = sanitizeAppName(serverName);
+
+        if (fromServer) {
+            window.persistCustomerAppName(fromServer);
+            this.name = fromServer;
+        } else {
+            this.name = readStoredAppName();
+        }
+
+        this.applyChrome();
+    },
+    applyChrome() {
+        if (! this.name) {
+            return;
+        }
+
+        document.title = this.name;
+
+        const letter = this.name.slice(0, 1).toUpperCase();
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#0EA5E9"/><text x="32" y="43" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="800" fill="#ffffff">${letter}</text></svg>`;
+        const href = 'data:image/svg+xml,' + encodeURIComponent(svg);
+
+        document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]').forEach((link) => {
+            link.setAttribute('href', href);
+        });
+    },
+}));
+
+
 Alpine.data('otpForm', () => ({
     digits: ['', '', '', ''],
     otp: '',
     timer: 59,
     fetching: false,
+    clock() {
+        const minutes = String(Math.floor(this.timer / 60)).padStart(2, '0');
+        const seconds = String(this.timer % 60).padStart(2, '0');
+
+        return `${minutes}:${seconds}`;
+    },
     start() {
-        setInterval(() => {
-            if (this.timer > 0) {
-                this.timer--;
-            }
-        }, 1000);
-        setTimeout(() => this.autofill(), 3500);
+        if (!this._tick) {
+            this._tick = setInterval(() => {
+                if (this.timer > 0) {
+                    this.timer--;
+                }
+            }, 1000);
+        }
+        this.scheduleAutofill();
+    },
+    scheduleAutofill() {
+        clearTimeout(this._auto);
+        this._auto = setTimeout(() => this.autofill(), 3500);
+    },
+    async resend() {
+        try {
+            const token = document.querySelector('meta[name="csrf-token"]').content;
+            await fetch('/verify-otp/resend', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': token,
+                    Accept: 'application/json',
+                },
+            });
+        } catch (e) {
+            // Resend is best-effort in the demo.
+        }
+        this.digits = ['', '', '', ''];
+        this.otp = '';
+        this.timer = 59;
+        this.scheduleAutofill();
     },
     sync() {
         this.otp = this.digits.join('');
@@ -58,11 +158,17 @@ Alpine.data('otpForm', () => ({
     },
 }));
 
-Alpine.data('paymentForm', (selectedMethod) => ({
+Alpine.data('paymentForm', (selectedMethod, paymentLink, methods) => ({
     method: selectedMethod,
+    paymentLink: paymentLink || '',
+    methods: methods || [],
+    copied: false,
     image: null,
     fileName: null,
     errors: {},
+    get currentLink() {
+        return (this.paymentLink || '').trim();
+    },
     validate(event) {
         this.errors = {};
 
@@ -70,9 +176,11 @@ Alpine.data('paymentForm', (selectedMethod) => ({
             this.errors.method = 'Select a payment method.';
         }
 
-        const transaction = document.querySelector('input[name="transaction_id"]')?.value?.trim();
+        const transaction = (document.querySelector('input[name="transaction_id"]')?.value || '').replace(/\s+/g, '');
         if (! transaction) {
             this.errors.transaction = 'Enter the transaction ID.';
+        } else if (transaction.length < 12) {
+            this.errors.transaction = 'The transaction ID must be at least 12 characters.';
         }
 
         if (! this.$refs.screenshot?.files?.length) {
@@ -109,11 +217,14 @@ Alpine.data('paymentForm', (selectedMethod) => ({
             this.$refs.screenshot.value = '';
         }
     },
-    async copy(value) {
-        if (! value) {
+    async copyLink() {
+        if (! this.currentLink) {
             return;
         }
-        await navigator.clipboard.writeText(value.trim());
+        await navigator.clipboard.writeText(this.currentLink);
+        this.copied = true;
+        clearTimeout(this._copiedTimer);
+        this._copiedTimer = setTimeout(() => this.copied = false, 2000);
     },
 }));
 

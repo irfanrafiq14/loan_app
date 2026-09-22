@@ -8,12 +8,14 @@
         </div>
         <div>
             <label class="mb-2 block text-sm font-semibold">Phone number</label>
-            <div class="flex overflow-hidden rounded-2xl border border-slate-200">
-                <span class="bg-slate-50 px-4 py-3 text-sm font-bold">+92</span>
-                <input name="phone" value="{{ old('phone', \App\Support\PhoneNumber::localPart($customer->phone)) }}" class="w-full px-4 py-3 outline-none" required>
-                <input type="hidden" name="country_code" value="92">
-            </div>
+            <x-phone-field :phone="old('phone', \App\Support\PhoneNumber::localPart($customer->phone))" />
+            @error('country_code') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
             @error('phone') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+        </div>
+        <div>
+            <label class="mb-2 block text-sm font-semibold">App name</label>
+            <input name="app_name" value="{{ old('app_name', $customer->app_name) }}" class="w-full rounded-2xl border border-slate-200 px-4 py-3" required>
+            @error('app_name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
         </div>
         <div>
             <label class="mb-2 block text-sm font-semibold">Status</label>
@@ -24,19 +26,19 @@
         </div>
         <div class="grid gap-4 sm:grid-cols-2">
             <div>
-                <label class="mb-2 block text-sm font-semibold">Available credit</label>
+                <label class="mb-2 block text-sm font-semibold">Available credit (₹)</label>
                 <input name="available_credit" type="number" value="{{ old('available_credit', (int) $customer->available_credit) }}" class="w-full rounded-2xl border border-slate-200 px-4 py-3">
             </div>
             <div>
-                <label class="mb-2 block text-sm font-semibold">Eligible offer</label>
+                <label class="mb-2 block text-sm font-semibold">Eligible offer (₹)</label>
                 <input name="eligible_offer" type="number" value="{{ old('eligible_offer', (int) $customer->eligible_offer) }}" class="w-full rounded-2xl border border-slate-200 px-4 py-3">
             </div>
             <div>
-                <label class="mb-2 block text-sm font-semibold">Minimum amount</label>
+                <label class="mb-2 block text-sm font-semibold">Minimum amount (₹)</label>
                 <input name="credit_min" type="number" value="{{ old('credit_min', (int) $customer->credit_min) }}" class="w-full rounded-2xl border border-slate-200 px-4 py-3">
             </div>
             <div>
-                <label class="mb-2 block text-sm font-semibold">Maximum amount</label>
+                <label class="mb-2 block text-sm font-semibold">Maximum amount (₹)</label>
                 <input name="credit_max" type="number" value="{{ old('credit_max', (int) $customer->credit_max) }}" class="w-full rounded-2xl border border-slate-200 px-4 py-3">
             </div>
         </div>

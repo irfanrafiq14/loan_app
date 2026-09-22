@@ -13,13 +13,15 @@ class ExampleTest extends TestCase
     {
         $this->get('/')
             ->assertOk()
-            ->assertSee('Sign in')
+            ->assertSee('Welcome')
             ->assertSee('Phone number')
             ->assertSee('name="country_code"', false)
-            ->assertSee('+92 Pakistan')
-            ->assertSee('+91 India')
+            ->assertSee('value="91"', false)
+            ->assertSee('+91')
+            ->assertDontSee('+92 Pakistan')
+            ->assertSee('Continue')
             ->assertDontSee('Admin login')
-            ->assertDontSee('MaxWallet Admin')
+            ->assertDontSee('MaxWallet')
             ->assertDontSee('Open the private login link');
     }
 

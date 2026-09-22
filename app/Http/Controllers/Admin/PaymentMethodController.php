@@ -3,53 +3,28 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\StorePaymentMethodRequest;
+use App\Http\Requests\Admin\UpdatePaymentLinkRequest;
 use App\Models\PaymentMethod;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class PaymentMethodController extends Controller
 {
-    public function index(): View
+    public function edit(): View
     {
-        $methods = PaymentMethod::query()->orderBy('sort_order')->get();
+        PaymentMethod::syncSharedLink();
 
-        return view('admin.payment-methods.index', compact('methods'));
-    }
-
-    public function create(): View
-    {
-        return view('admin.payment-methods.create');
-    }
-
-    public function store(StorePaymentMethodRequest $request): RedirectResponse
-    {
-        PaymentMethod::query()->create([
-            ...$request->validated(),
-            'is_active' => $request->boolean('is_active', true),
-            'sort_order' => $request->integer('sort_order'),
+        return view('admin.payment-link', [
+            'paymentLink' => PaymentMethod::sharedLink(),
         ]);
+    }
+
+    public function update(UpdatePaymentLinkRequest $request): RedirectResponse
+    {
+        PaymentMethod::syncSharedLink($request->string('payment_link')->toString());
 
         return redirect()
-            ->route('admin.payment-methods.index')
-            ->with('success', 'Payment method created.');
-    }
-
-    public function edit(PaymentMethod $paymentMethod): View
-    {
-        return view('admin.payment-methods.edit', compact('paymentMethod'));
-    }
-
-    public function update(StorePaymentMethodRequest $request, PaymentMethod $paymentMethod): RedirectResponse
-    {
-        $paymentMethod->update([
-            ...$request->validated(),
-            'is_active' => $request->boolean('is_active'),
-            'sort_order' => $request->integer('sort_order'),
-        ]);
-
-        return redirect()
-            ->route('admin.payment-methods.index')
-            ->with('success', 'Payment method updated.');
+            ->route('admin.payment-link.edit')
+            ->with('success', 'Payment link updated. Customers can copy it on the pay page.');
     }
 }

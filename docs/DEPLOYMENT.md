@@ -51,7 +51,6 @@ CACHE_STORE=database
 QUEUE_CONNECTION=sync
 FILESYSTEM_DISK=local
 
-MAXWALLET_LOGIN_LINK_HOURS=24
 MAXWALLET_OTP_MINUTES=5
 MAXWALLET_OTP_MAX_ATTEMPTS=5
 ```
@@ -158,7 +157,7 @@ php artisan cache:clear
 
 - `https://yourdomain.com/` opens customer login
 - `https://yourdomain.com/admin` opens admin login
-- Create a customer, send a login link, and complete the 4-digit OTP
+- Create a customer with an app name, copy only the base app URL, and complete the 4-digit OTP. The app name appears after login.
 - Upload a payment screenshot
 - Logout, then log in another customer on the same phone
 

@@ -5,9 +5,9 @@ use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FeaturedLoanController;
 use App\Http\Controllers\Admin\LoanController;
-use App\Http\Controllers\Admin\LoginLinkController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\PaymentMethodController;
+use App\Http\Controllers\Admin\SupportEmailController;
 use App\Http\Controllers\Customer\AccessController;
 use App\Http\Controllers\Customer\ApplyController;
 use App\Http\Controllers\Customer\HomeController;
@@ -23,11 +23,19 @@ Route::post('/login', [AccessController::class, 'submitClientPhone']);
 
 Route::middleware('auth')->get('/featured-loans/{loan}/image', [FeaturedLoanController::class, 'image'])->name('featured-loans.image');
 
-Route::get('/access/{token}', [AccessController::class, 'show'])->name('access.show');
-Route::post('/access/{token}', [AccessController::class, 'submitPhone'])->name('access.phone');
+Route::get('/access/{token}', function (string $token) {
+    $clean = strtolower(preg_replace('/[^a-z0-9]/', '', $token) ?? '');
+
+    if (strlen($clean) >= \App\Support\AppBrand::TOKEN_MIN_LENGTH) {
+        return redirect()->route('client.login', ['t' => $clean]);
+    }
+
+    return redirect()->route('client.login');
+});
 Route::get('/verify-otp', [AccessController::class, 'showOtp'])->name('verify-otp.show');
 Route::post('/verify-otp', [AccessController::class, 'verify'])->name('verify-otp.verify');
 Route::post('/verify-otp/autofill', [AccessController::class, 'autofill'])->name('verify-otp.autofill');
+Route::post('/verify-otp/resend', [AccessController::class, 'resend'])->name('verify-otp.resend');
 
 Route::middleware(['auth', 'customer'])->group(function () {
     Route::get('/home', HomeController::class)->name('home');
@@ -53,11 +61,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('customers', CustomerController::class)->except(['destroy']);
         Route::post('/customers/{customer}/deactivate', [CustomerController::class, 'deactivate'])->name('customers.deactivate');
 
-        Route::get('/login-links', [LoginLinkController::class, 'index'])->name('login-links.index');
-        Route::get('/login-links/create', [LoginLinkController::class, 'create'])->name('login-links.create');
-        Route::post('/login-links', [LoginLinkController::class, 'store'])->name('login-links.store');
-        Route::post('/login-links/{loginLink}/revoke', [LoginLinkController::class, 'revoke'])->name('login-links.revoke');
-
         Route::resource('loans', LoanController::class);
         Route::resource('featured-loans', FeaturedLoanController::class)
             ->parameters(['featured-loans' => 'loan'])
@@ -69,6 +72,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/payments/{payment}/reject', [AdminPaymentController::class, 'reject'])->name('payments.reject');
         Route::get('/payments/{payment}/screenshot', [AdminPaymentController::class, 'screenshot'])->name('payments.screenshot');
 
-        Route::resource('payment-methods', PaymentMethodController::class)->except(['show', 'destroy']);
+        Route::get('/payment-link', [PaymentMethodController::class, 'edit'])->name('payment-link.edit');
+        Route::put('/payment-link', [PaymentMethodController::class, 'update'])->name('payment-link.update');
+        Route::get('/support-email', [SupportEmailController::class, 'edit'])->name('support-email.edit');
+        Route::put('/support-email', [SupportEmailController::class, 'update'])->name('support-email.update');
+        Route::get('/payment-methods', fn () => redirect()->route('admin.payment-link.edit'));
+        Route::get('/payment-methods/create', fn () => redirect()->route('admin.payment-link.edit'));
+        Route::get('/payment-methods/{payment_method}/edit', fn () => redirect()->route('admin.payment-link.edit'));
     });
 });

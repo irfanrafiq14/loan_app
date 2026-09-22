@@ -53,6 +53,7 @@ class ApplyController extends Controller
             'user_id' => $customer->id,
             'title' => $loan->title,
             'amount' => $amount,
+            'total_due' => $amount,
             'minimum_amount' => $loan->minimum_amount,
             'maximum_amount' => $loan->maximum_amount,
             'loan_date' => now()->toDateString(),

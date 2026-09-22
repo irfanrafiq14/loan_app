@@ -1,7 +1,7 @@
+@php $appUrl = \App\Support\AppBrand::brandedLocalUrl($customer); @endphp
 <x-layouts.admin title="{{ $customer->name }}" heading="{{ $customer->name }}">
     <div class="mb-4 flex flex-wrap gap-2">
         <a href="{{ route('admin.customers.edit', $customer) }}" class="rounded-2xl bg-white px-4 py-2 text-sm font-bold shadow-sm">Edit</a>
-        <a href="{{ route('admin.login-links.create', ['customer' => $customer->id]) }}" class="rounded-2xl brand-gradient px-4 py-2 text-sm font-bold text-white">Create login link</a>
         <a href="{{ route('admin.loans.create', ['customer' => $customer->id]) }}" class="rounded-2xl bg-white px-4 py-2 text-sm font-bold shadow-sm">Create loan</a>
         @if ($customer->isActive())
             <form method="POST" action="{{ route('admin.customers.deactivate', $customer) }}">
@@ -10,6 +10,19 @@
             </form>
         @endif
     </div>
+
+    <section class="mb-4 rounded-3xl bg-white p-5 shadow-sm" x-data="{ copied: false }">
+        <p class="text-sm text-muted">App name</p>
+        <p class="text-lg font-extrabold">{{ $customer->brandedName() ?: '—' }}</p>
+        <p class="mt-4 text-sm text-muted">Send this app link</p>
+        <p class="mt-1 text-sm">Copy this URL. The long token shows the app name on first visit. The customer then signs in with phone and OTP.</p>
+        <div class="mt-3 flex flex-wrap items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+            <p class="min-w-0 flex-1 break-all font-bold" x-ref="appLink">{{ $appUrl }}</p>
+            <button type="button" class="rounded-full bg-slate-900 px-4 py-2 text-xs font-bold text-white"
+                    @click="navigator.clipboard.writeText($refs.appLink.textContent.trim()); copied = true; setTimeout(() => copied = false, 2000)"
+                    x-text="copied ? 'Copied' : 'Copy link'"></button>
+        </div>
+    </section>
 
     <div class="grid gap-4 lg:grid-cols-3">
         <section class="rounded-3xl bg-white p-5 shadow-sm">
@@ -24,7 +37,7 @@
                 @forelse ($customer->loans as $loan)
                     <a href="{{ route('admin.loans.show', $loan) }}" class="flex justify-between rounded-2xl bg-slate-50 px-4 py-3">
                         <span>{{ $loan->title }}</span>
-                        <span>{{ \App\Support\Money::format($loan->amount) }} · {{ $loan->status->label() }}</span>
+                        <span>{{ \App\Support\Money::format($loan->totalDueAmount()) }} · {{ $loan->status->label() }}</span>
                     </a>
                 @empty
                     <p class="text-muted">No loans yet.</p>

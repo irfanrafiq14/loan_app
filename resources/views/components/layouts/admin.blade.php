@@ -28,11 +28,11 @@
                 @foreach ([
                     ['admin.dashboard', 'Dashboard'],
                     ['admin.customers.index', 'Customers'],
-                    ['admin.login-links.index', 'Login links'],
                     ['admin.loans.index', 'Loans'],
                     ['admin.featured-loans.index', 'Featured loans'],
                     ['admin.payments.index', 'Payments'],
-                    ['admin.payment-methods.index', 'Payment methods'],
+                    ['admin.payment-link.edit', 'Payment link'],
+                    ['admin.support-email.edit', 'Support email'],
                 ] as [$route, $label])
                     <a href="{{ route($route) }}" class="rounded-xl px-4 py-3 text-sm font-semibold {{ request()->routeIs(str_replace('.index', '.*', $route)) || request()->routeIs($route) ? 'bg-white/15' : 'text-white/80 hover:bg-white/10' }}">
                         {{ $label }}
@@ -58,11 +58,11 @@
                 <nav class="space-y-2">
                     <a href="{{ route('admin.dashboard') }}" class="block rounded-xl bg-white/10 px-4 py-3">Dashboard</a>
                     <a href="{{ route('admin.customers.index') }}" class="block rounded-xl px-4 py-3">Customers</a>
-                    <a href="{{ route('admin.login-links.index') }}" class="block rounded-xl px-4 py-3">Login links</a>
                     <a href="{{ route('admin.loans.index') }}" class="block rounded-xl px-4 py-3">Loans</a>
                     <a href="{{ route('admin.featured-loans.index') }}" class="block rounded-xl px-4 py-3">Featured loans</a>
                     <a href="{{ route('admin.payments.index') }}" class="block rounded-xl px-4 py-3">Payments</a>
-                    <a href="{{ route('admin.payment-methods.index') }}" class="block rounded-xl px-4 py-3">Payment methods</a>
+                    <a href="{{ route('admin.payment-link.edit') }}" class="block rounded-xl px-4 py-3">Payment link</a>
+                    <a href="{{ route('admin.support-email.edit') }}" class="block rounded-xl px-4 py-3">Support email</a>
                 </nav>
             </aside>
 

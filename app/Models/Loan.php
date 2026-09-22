@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Loan extends Model
 {
@@ -17,7 +18,9 @@ class Loan extends Model
     protected $fillable = [
         'user_id',
         'title',
+        'reference_code',
         'amount',
+        'total_due',
         'minimum_amount',
         'maximum_amount',
         'loan_date',
@@ -33,6 +36,7 @@ class Loan extends Model
     {
         return [
             'amount' => 'decimal:2',
+            'total_due' => 'decimal:2',
             'minimum_amount' => 'decimal:2',
             'maximum_amount' => 'decimal:2',
             'loan_date' => 'date',
@@ -40,6 +44,19 @@ class Loan extends Model
             'status' => LoanStatus::class,
             'is_featured' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Loan $loan) {
+            if (! filled($loan->reference_code)) {
+                $loan->reference_code = static::uniqueReferenceCode();
+            }
+
+            if ($loan->total_due === null && $loan->amount !== null) {
+                $loan->total_due = $loan->amount;
+            }
+        });
     }
 
     public function user(): BelongsTo
@@ -52,9 +69,33 @@ class Loan extends Model
         return $this->hasMany(LoanPayment::class);
     }
 
+    public static function uniqueReferenceCode(): string
+    {
+        do {
+            $code = strtoupper(Str::random(8));
+        } while (static::query()->where('reference_code', $code)->exists());
+
+        return $code;
+    }
+
     public function reference(): string
     {
-        return 'MW-'.str_pad((string) $this->id, 5, '0', STR_PAD_LEFT);
+        $code = strtoupper(trim((string) $this->reference_code));
+
+        if ($code === '') {
+            $code = str_pad((string) $this->id, 8, '0', STR_PAD_LEFT);
+        }
+
+        return '#'.$code;
+    }
+
+    public function totalDueAmount(): float
+    {
+        if ($this->total_due === null || $this->total_due === '') {
+            return (float) $this->amount;
+        }
+
+        return (float) $this->total_due;
     }
 
     public function hasFeaturedImage(): bool

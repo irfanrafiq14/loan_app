@@ -41,15 +41,15 @@
 </div>
 <div class="grid gap-4 sm:grid-cols-3">
     <div>
-        <label class="mb-2 block text-sm font-semibold">Loan amount</label>
+        <label class="mb-2 block text-sm font-semibold">Loan amount (₹)</label>
         <input name="amount" type="number" step="0.01" value="{{ old('amount', $loan->amount ?? '') }}" class="w-full rounded-2xl border border-slate-200 px-4 py-3" required>
     </div>
     <div>
-        <label class="mb-2 block text-sm font-semibold">Minimum amount</label>
+        <label class="mb-2 block text-sm font-semibold">Minimum amount (₹)</label>
         <input name="minimum_amount" type="number" step="0.01" value="{{ old('minimum_amount', $loan->minimum_amount ?? '') }}" class="w-full rounded-2xl border border-slate-200 px-4 py-3">
     </div>
     <div>
-        <label class="mb-2 block text-sm font-semibold">Maximum amount</label>
+        <label class="mb-2 block text-sm font-semibold">Maximum amount (₹)</label>
         <input name="maximum_amount" type="number" step="0.01" value="{{ old('maximum_amount', $loan->maximum_amount ?? '') }}" class="w-full rounded-2xl border border-slate-200 px-4 py-3">
     </div>
 </div>

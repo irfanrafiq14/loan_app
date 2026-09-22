@@ -10,6 +10,7 @@ class PhoneNumber
     public static function countryCodes(): array
     {
         return [
+            '91' => '+91 India',
             '92' => '+92 Pakistan',
             '93' => '+93 Afghanistan',
             '61' => '+61 Australia',
@@ -22,7 +23,6 @@ class PhoneNumber
             '33' => '+33 France',
             '49' => '+49 Germany',
             '852' => '+852 Hong Kong',
-            '91' => '+91 India',
             '62' => '+62 Indonesia',
             '98' => '+98 Iran',
             '964' => '+964 Iraq',
@@ -62,7 +62,22 @@ class PhoneNumber
 
     public static function defaultCountryCode(): string
     {
-        return '92';
+        return '91';
+    }
+
+    public static function countryCodeFromPhone(?string $phone): string
+    {
+        $digits = self::digits($phone);
+        $codes = array_keys(self::countryCodes());
+        usort($codes, fn (string $left, string $right) => strlen($right) <=> strlen($left));
+
+        foreach ($codes as $code) {
+            if (str_starts_with($digits, $code) && strlen($digits) > strlen($code)) {
+                return $code;
+            }
+        }
+
+        return self::defaultCountryCode();
     }
 
     public static function normalize(?string $countryCode, ?string $number): string
@@ -110,19 +125,27 @@ class PhoneNumber
             return '—';
         }
 
-        if (str_starts_with($digits, '92') && strlen($digits) >= 12) {
-            return '+92 '.substr($digits, 2, 3).' '.substr($digits, 5);
+        $code = self::countryCodeFromPhone($digits);
+        $local = self::localPart($digits);
+
+        if ($code === '91' && strlen($local) >= 10) {
+            return '+91 '.substr($local, 0, 5).' '.substr($local, 5);
         }
 
-        return '+'.$digits;
+        if ($code === '92' && strlen($local) >= 10) {
+            return '+92 '.substr($local, 0, 3).' '.substr($local, 3);
+        }
+
+        return '+'.$code.' '.$local;
     }
 
     public static function localPart(?string $phone): string
     {
         $digits = self::digits($phone);
+        $code = self::countryCodeFromPhone($digits);
 
-        if (str_starts_with($digits, '92')) {
-            return substr($digits, 2);
+        if (str_starts_with($digits, $code)) {
+            return substr($digits, strlen($code));
         }
 
         return $digits;

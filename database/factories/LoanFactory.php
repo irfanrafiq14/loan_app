@@ -17,7 +17,8 @@ class LoanFactory extends Factory
         return [
             'user_id' => User::factory()->customer(),
             'title' => fake()->randomElement(['Sweet Money', 'Quick Boost', 'Growth Plus']),
-            'amount' => 25250,
+            'amount' => 2750,
+            'total_due' => 5250,
             'minimum_amount' => 2000,
             'maximum_amount' => 34500,
             'loan_date' => now()->toDateString(),

@@ -30,6 +30,8 @@ class UserFactory extends Factory
             'credit_min' => 2000,
             'credit_max' => 34500,
             'eligible_offer' => 50000,
+            'app_name' => fake()->optional()->randomElement(['EasyCash', 'testapp']),
+            'support_email' => 'support@example.com',
             'remember_token' => Str::random(10),
         ];
     }

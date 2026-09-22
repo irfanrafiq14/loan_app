@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -31,6 +32,8 @@ class User extends Authenticatable
         'credit_max',
         'eligible_offer',
         'app_name',
+        'app_token',
+        'support_email',
     ];
 
     protected $hidden = [
@@ -60,11 +63,6 @@ class User extends Authenticatable
     public function payments(): HasMany
     {
         return $this->hasMany(LoanPayment::class);
-    }
-
-    public function loginLinks(): HasMany
-    {
-        return $this->hasMany(LoginLink::class);
     }
 
     public function otpVerifications(): HasMany
@@ -142,12 +140,15 @@ class User extends Authenticatable
 
     public function pendingLoans(): HasMany
     {
-        return $this->outstandingLoans();
+        return $this->loans()
+            ->whereIn('status', [LoanStatus::Pending, LoanStatus::Approved]);
     }
 
     public function pendingLoanAmount(): float
     {
-        return (float) $this->pendingLoans()->sum('amount');
+        return (float) $this->pendingLoans()
+            ->get(['amount', 'total_due'])
+            ->sum(fn (Loan $loan) => $loan->totalDueAmount());
     }
 
     public function displayLoanAmount(): float
@@ -159,35 +160,19 @@ class User extends Authenticatable
 
     public function loanProgressBar(): array
     {
-        $loans = $this->pendingLoans()->get();
-
-        if ($loans->isEmpty()) {
-            return [
-                'amount' => 0.0,
-                'min' => 0.0,
-                'max' => 0.0,
-                'percent' => 0.0,
-                'label' => 'Pending loan amount',
-                'count' => 0,
-            ];
-        }
-
-        $amount = (float) $loans->sum('amount');
-        $min = (float) $loans->min(fn (Loan $loan) => (float) ($loan->minimum_amount ?? 0));
-        $max = (float) $loans->max(fn (Loan $loan) => (float) ($loan->maximum_amount ?: $loan->amount ?: 0));
+        $loans = $this->pendingLoans()->get(['id', 'amount', 'total_due']);
+        $amount = (float) $loans->sum(fn (Loan $loan) => $loan->totalDueAmount());
+        $min = (float) ($this->credit_min ?? 0);
+        $max = (float) ($this->credit_max ?: $this->available_credit ?: 0);
 
         if ($max < $min) {
             [$min, $max] = [$max, $min];
         }
 
-        if ($max < $amount) {
-            $max = $amount;
-        }
-
         $percent = 0.0;
         if ($max > $min) {
             $percent = (($amount - $min) / ($max - $min)) * 100;
-        } elseif ($amount > 0) {
+        } elseif ($amount > 0 && $max > 0) {
             $percent = 100.0;
         }
 
@@ -196,20 +181,69 @@ class User extends Authenticatable
             'min' => $min,
             'max' => $max,
             'percent' => max(0, min(100, $percent)),
-            'label' => 'Pending loan amount',
+            'label' => 'Selected amount',
             'count' => $loans->count(),
         ];
     }
 
-    public function brandedName(): string
+    public function creditLimit(): float
     {
-        $name = trim((string) $this->app_name);
+        return (float) ($this->credit_max ?: $this->available_credit ?: 0);
+    }
 
-        if ($name !== '') {
-            return $name;
+    public function creditAvailable(): float
+    {
+        return (float) $this->available_credit;
+    }
+
+    public function creditUtilized(): float
+    {
+        return max(0, $this->creditLimit() - $this->creditAvailable());
+    }
+
+    public function creditUtilizationPercent(): int
+    {
+        $limit = $this->creditLimit();
+
+        if ($limit <= 0) {
+            return 0;
         }
 
-        return trim((string) $this->loginLinks()->latest('id')->value('app_name'));
+        return (int) round(($this->creditUtilized() / $limit) * 100);
+    }
+
+    public function brandedName(): string
+    {
+        return trim((string) $this->app_name);
+    }
+
+    public function appToken(): string
+    {
+        if (filled($this->app_token) && strlen((string) $this->app_token) > 6) {
+            return strtolower((string) $this->app_token);
+        }
+
+        $this->forceFill(['app_token' => static::uniqueAppToken()])->save();
+
+        return (string) $this->app_token;
+    }
+
+    public static function uniqueAppToken(): string
+    {
+        do {
+            $token = strtolower(Str::random(12));
+        } while (strlen($token) <= 6 || static::query()->where('app_token', $token)->exists());
+
+        return $token;
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            if ($user->isCustomer() && (! filled($user->app_token) || strlen((string) $user->app_token) <= 6)) {
+                $user->app_token = static::uniqueAppToken();
+            }
+        });
     }
 
     public function greeting(): string

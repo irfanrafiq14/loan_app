@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\LoanStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreLoanRequest;
 use App\Http\Requests\Admin\UpdateLoanRequest;
@@ -43,7 +44,10 @@ class LoanController extends Controller
 
     public function store(StoreLoanRequest $request): RedirectResponse
     {
-        $loan = Loan::query()->create($request->validated());
+        $loan = Loan::query()->create([
+            ...$request->validated(),
+            'status' => LoanStatus::Pending,
+        ]);
 
         return redirect()
             ->route('admin.loans.show', $loan)

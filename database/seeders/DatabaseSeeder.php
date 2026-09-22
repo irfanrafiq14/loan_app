@@ -9,6 +9,7 @@ use App\Enums\UserStatus;
 use App\Models\Loan;
 use App\Models\LoanPayment;
 use App\Models\PaymentMethod;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -27,6 +28,8 @@ class DatabaseSeeder extends Seeder
             'status' => UserStatus::Active,
         ]);
 
+        Setting::putValue('support_email', 'help@easycash.example');
+
         $irfan = User::query()->create([
             'name' => 'Muhammad Irfan',
             'email' => null,
@@ -38,6 +41,8 @@ class DatabaseSeeder extends Seeder
             'credit_min' => 2000,
             'credit_max' => 34500,
             'eligible_offer' => 50000,
+            'app_name' => 'testapp',
+            'support_email' => 'support@testapp.example',
         ]);
 
         $ayesha = User::query()->create([
@@ -51,13 +56,15 @@ class DatabaseSeeder extends Seeder
             'credit_min' => 2000,
             'credit_max' => 28000,
             'eligible_offer' => 40000,
+            'app_name' => 'EasyCash',
+            'support_email' => 'help@easycash.example',
         ]);
 
         $methods = [
-            ['PayFast', 'PK12MAXW000111222', 'Send the loan amount to this PayFast wallet, then enter the transaction ID.', 1],
-            ['JazzCash', '03001234567', 'Transfer via JazzCash and keep the confirmation screenshot.', 2],
-            ['Google Pay', 'demo@okbank', 'Use this UPI-style address for Google Pay transfers. No live API is connected.', 3],
-            ['UPI', 'demo@upi', 'Complete a UPI transfer and upload the receipt image.', 4],
+            ['Google Pay', '778028656@omni', 'Copy the payment link, pay in this app, then submit the transaction ID and screenshot.', 1],
+            ['PhonePe', '778028656@omni', 'Copy the payment link, pay in this app, then submit the transaction ID and screenshot.', 2],
+            ['Paytm', '778028656@omni', 'Copy the payment link, pay in this app, then submit the transaction ID and screenshot.', 3],
+            ['UPI', '778028656@omni', 'Copy the payment link, pay in this app, then submit the transaction ID and screenshot.', 4],
         ];
 
         $createdMethods = collect($methods)->map(fn ($method) => PaymentMethod::query()->create([
@@ -95,13 +102,14 @@ class DatabaseSeeder extends Seeder
         $sweetMoney = Loan::query()->create([
             'user_id' => $irfan->id,
             'title' => 'Sweet Money',
-            'amount' => 25250,
+            'amount' => 2750,
+            'total_due' => 5250,
             'minimum_amount' => 2000,
             'maximum_amount' => 34500,
             'loan_date' => '2026-08-22',
-            'due_date' => '2026-08-22',
+            'due_date' => '2026-09-03',
             'description' => 'Featured offer for Muhammad Irfan.',
-            'payment_instructions' => 'Transfer Rs. 25,250 to the account shown on the payment page.',
+            'payment_instructions' => 'Transfer ₹25,250 to the account shown on the payment page.',
             'status' => LoanStatus::Approved,
         ]);
 
@@ -140,7 +148,7 @@ class DatabaseSeeder extends Seeder
             'loan_id' => $sweetMoney->id,
             'user_id' => $irfan->id,
             'payment_method_id' => $createdMethods->first()->id,
-            'transaction_id' => 'TXN-100251',
+            'transaction_id' => 'TXN-10025100',
             'screenshot_path' => $demoPath,
             'status' => PaymentStatus::Pending,
             'submitted_at' => now()->subHour(),
@@ -152,7 +160,7 @@ class DatabaseSeeder extends Seeder
             'loan_id' => $completedLoan->id,
             'user_id' => $irfan->id,
             'payment_method_id' => $createdMethods->first()->id,
-            'transaction_id' => 'TXN-882211',
+            'transaction_id' => 'TXN-88221100',
             'screenshot_path' => $demoPath,
             'status' => PaymentStatus::Completed,
             'admin_notes' => 'Verified by admin.',

@@ -18,9 +18,12 @@ class AppServiceProvider extends ServiceProvider
         View::composer([
             'components.layouts.customer',
             'components.layouts.guest',
+            'components.customer-nav',
+            'components.support-link',
             'customer.*',
         ], function ($view) {
             $view->with('appName', AppBrand::name());
+            $view->with('supportGmailUrl', AppBrand::gmailUrl());
         });
     }
 }

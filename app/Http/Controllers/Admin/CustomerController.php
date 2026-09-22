@@ -38,7 +38,7 @@ class CustomerController extends Controller
     public function store(StoreCustomerRequest $request): RedirectResponse
     {
         $customer = User::query()->create([
-            ...$request->validated(),
+            ...$request->safe()->except('country_code'),
             'role' => UserRole::Customer,
             'available_credit' => $request->input('available_credit', 34500),
             'credit_min' => $request->input('credit_min', 2000),
@@ -48,8 +48,7 @@ class CustomerController extends Controller
 
         return redirect()
             ->route('admin.customers.show', $customer)
-            ->with('success', 'Customer created successfully.')
-            ->with('created_customer_id', $customer->id);
+            ->with('success', 'Customer created. Send them the app link to sign in with their phone number.');
     }
 
     public function show(User $customer): View
@@ -58,7 +57,7 @@ class CustomerController extends Controller
 
         $this->authorize('view', $customer);
 
-        $customer->load(['loans.payments', 'payments.loan', 'loginLinks']);
+        $customer->load(['loans.payments', 'payments.loan']);
 
         return view('admin.customers.show', compact('customer'));
     }
@@ -76,7 +75,7 @@ class CustomerController extends Controller
     {
         abort_unless($customer->isCustomer(), 404);
 
-        $customer->update($request->validated());
+        $customer->update($request->safe()->except('country_code'));
 
         return redirect()
             ->route('admin.customers.show', $customer)

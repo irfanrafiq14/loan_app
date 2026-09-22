@@ -21,6 +21,7 @@ class OrderController extends Controller
             ->when($search !== '', function ($builder) use ($search) {
                 $builder->where(function ($inner) use ($search) {
                     $inner->where('title', 'like', '%'.$search.'%')
+                        ->orWhere('reference_code', 'like', '%'.ltrim($search, '#').'%')
                         ->orWhere('id', $search);
                 });
             });

@@ -14,7 +14,7 @@ enum LoanStatus: string
         return match ($this) {
             self::Pending => 'Pending',
             self::Approved => 'Approved',
-            self::Completed => 'Completed',
+            self::Completed => 'Paid',
             self::Rejected => 'Rejected',
         };
     }

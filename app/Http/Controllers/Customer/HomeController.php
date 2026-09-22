@@ -25,6 +25,7 @@ class HomeController extends Controller
         return view('customer.home', [
             'customer' => $customer,
             'featuredLoans' => $featuredLoans,
+            'featuredTotal' => (float) $featuredLoans->sum(fn (Loan $loan) => (float) $loan->amount),
             'barAmount' => $progress['amount'],
             'barMin' => $progress['min'],
             'barMax' => $progress['max'],

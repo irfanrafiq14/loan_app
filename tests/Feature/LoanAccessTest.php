@@ -131,21 +131,25 @@ class LoanAccessTest extends TestCase
         ]);
     }
 
-    public function test_home_progress_bar_uses_pending_then_active_loan_amount(): void
+    public function test_home_progress_bar_uses_customer_account_limits_and_loan_amount(): void
     {
-        $customer = User::factory()->customer()->create();
+        $customer = User::factory()->customer()->create([
+            'credit_min' => 0,
+            'credit_max' => 34500,
+        ]);
 
         $this->actingAs($customer)
             ->get(route('home'))
             ->assertOk()
-            ->assertSee('Pending loan amount')
+            ->assertSee('Selected amount')
             ->assertDontSee('Active loan')
-            ->assertSee('Rs. 0')
-            ->assertSee('Max Rs. 0');
+            ->assertSee('₹0')
+            ->assertSee('₹34,500');
 
         Loan::factory()->create([
             'user_id' => $customer->id,
-            'amount' => 200,
+            'amount' => 1200,
+            'total_due' => 1200,
             'minimum_amount' => 10000,
             'maximum_amount' => 200000,
             'status' => LoanStatus::Pending,
@@ -154,10 +158,12 @@ class LoanAccessTest extends TestCase
         $this->actingAs($customer)
             ->get(route('home'))
             ->assertOk()
-            ->assertSee('Pending loan amount')
-            ->assertSee('Rs. 200')
-            ->assertSee('Min Rs. 10,000')
-            ->assertSee('Max Rs. 200,000');
+            ->assertSee('Selected amount')
+            ->assertSee('₹1,200')
+            ->assertSee('₹0')
+            ->assertSee('₹34,500')
+            ->assertDontSee('₹10,000')
+            ->assertDontSee('₹200,000');
 
         Loan::query()->where('user_id', $customer->id)->update([
             'status' => LoanStatus::Approved->value,
@@ -166,15 +172,15 @@ class LoanAccessTest extends TestCase
         $this->actingAs($customer)
             ->get(route('home'))
             ->assertOk()
-            ->assertSee('Pending loan amount')
+            ->assertSee('Selected amount')
             ->assertDontSee('Active loan')
-            ->assertSee('Rs. 200')
-            ->assertSee('Min Rs. 10,000')
-            ->assertSee('Max Rs. 200,000');
+            ->assertSee('₹1,200')
+            ->assertSee('₹34,500');
 
         Loan::factory()->create([
             'user_id' => $customer->id,
-            'amount' => 15000,
+            'amount' => 4050,
+            'total_due' => 4050,
             'minimum_amount' => 2000,
             'maximum_amount' => 28000,
             'status' => LoanStatus::Pending,
@@ -183,26 +189,66 @@ class LoanAccessTest extends TestCase
         $this->actingAs($customer)
             ->get(route('home'))
             ->assertOk()
-            ->assertSee('Pending loan amount')
-            ->assertSee('Rs. 15,200')
-            ->assertSee('Min Rs. 2,000')
-            ->assertSee('Max Rs. 200,000');
+            ->assertSee('Selected amount')
+            ->assertSee('₹5,250')
+            ->assertSee('₹0')
+            ->assertSee('₹34,500')
+            ->assertDontSee('₹28,000');
     }
 
-    public function test_admin_created_loan_appears_on_customer_orders_page(): void
+    public function test_admin_created_loan_shows_card_fields_on_customer_orders_page(): void
     {
+        $admin = User::factory()->admin()->create();
         $customer = User::factory()->customer()->create();
-        Loan::factory()->create([
+
+        $this->actingAs($admin)
+            ->get(route('admin.loans.create'))
+            ->assertOk()
+            ->assertSee('Total due')
+            ->assertSee('Loan amount')
+            ->assertSee('Loan date')
+            ->assertSee('Due date')
+            ->assertDontSee('Minimum amount')
+            ->assertDontSee('Payment instructions')
+            ->assertDontSee('name="description"', false)
+            ->assertDontSee('name="status"', false);
+
+        $this->post(route('admin.loans.store'), [
             'user_id' => $customer->id,
             'title' => 'Sweet Money',
-            'status' => LoanStatus::Pending,
-        ]);
+            'total_due' => 5250,
+            'amount' => 2750,
+            'loan_date' => '2026-08-22',
+            'due_date' => '2026-09-03',
+        ])->assertRedirect();
+
+        $loan = Loan::query()->where('user_id', $customer->id)->where('title', 'Sweet Money')->first();
+        $this->assertNotNull($loan);
+        $this->assertNotEmpty($loan->reference_code);
+        $this->assertEquals(5250, (float) $loan->total_due);
+        $this->assertEquals(2750, (float) $loan->amount);
 
         $this->actingAs($customer)
             ->get(route('orders', ['tab' => 'pending']))
             ->assertOk()
+            ->assertSee('Active obligations')
             ->assertSee('Sweet Money')
-            ->assertSee('Pending')
+            ->assertSee('Reference: '.$loan->reference())
+            ->assertSee('Total due')
+            ->assertSee('₹5,250')
+            ->assertSee('Due Sep 3, 2026')
+            ->assertSee('View Details')
+            ->assertSee('Pay Now')
+            ->assertSee('Loan amount')
+            ->assertSee('₹2,750')
+            ->assertSee('Aug 22, 2026')
             ->assertDontSee('Active loans');
+
+        $this->actingAs($customer)
+            ->get(route('home'))
+            ->assertOk()
+            ->assertSee('Selected amount')
+            ->assertSee('₹5,250')
+            ->assertSee('₹34,500');
     }
 }

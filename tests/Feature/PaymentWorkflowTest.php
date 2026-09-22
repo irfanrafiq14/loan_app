@@ -32,7 +32,7 @@ class PaymentWorkflowTest extends TestCase
             ->post(route('payments.store'), [
                 'loan_id' => $loan->id,
                 'payment_method_id' => $method->id,
-                'transaction_id' => 'TXN-1001',
+                'transaction_id' => 'TXN-10012567',
                 'screenshot' => $this->fakeScreenshot(),
             ])
             ->assertRedirect(route('orders', ['tab' => 'pending']));
@@ -40,7 +40,7 @@ class PaymentWorkflowTest extends TestCase
         $this->assertDatabaseHas('loan_payments', [
             'loan_id' => $loan->id,
             'user_id' => $customer->id,
-            'transaction_id' => 'TXN-1001',
+            'transaction_id' => 'TXN-10012567',
             'status' => PaymentStatus::Pending->value,
         ]);
     }
@@ -110,7 +110,7 @@ class PaymentWorkflowTest extends TestCase
             ->post(route('payments.store'), [
                 'loan_id' => $loan->id,
                 'payment_method_id' => $method->id,
-                'transaction_id' => 'TXN-1001',
+                'transaction_id' => 'TXN-10012567',
                 'screenshot' => UploadedFile::fake()->create('notes.pdf', 120, 'application/pdf'),
             ])
             ->assertSessionHasErrors('screenshot');
@@ -119,10 +119,31 @@ class PaymentWorkflowTest extends TestCase
             ->post(route('payments.store'), [
                 'loan_id' => $loan->id,
                 'payment_method_id' => $method->id,
-                'transaction_id' => 'TXN-1001',
+                'transaction_id' => 'TXN-10012567',
                 'screenshot' => UploadedFile::fake()->create('huge.jpg', 6000, 'image/jpeg'),
             ])
             ->assertSessionHasErrors('screenshot');
+    }
+
+    public function test_transaction_id_must_be_at_least_12_characters(): void
+    {
+        Storage::fake('local');
+
+        $customer = User::factory()->customer()->create();
+        $loan = Loan::factory()->create([
+            'user_id' => $customer->id,
+            'status' => LoanStatus::Approved,
+        ]);
+        $method = PaymentMethod::factory()->create();
+
+        $this->actingAs($customer)
+            ->post(route('payments.store'), [
+                'loan_id' => $loan->id,
+                'payment_method_id' => $method->id,
+                'transaction_id' => 'TXN-1001',
+                'screenshot' => $this->fakeScreenshot(),
+            ])
+            ->assertSessionHasErrors('transaction_id');
     }
 
     public function test_customer_cannot_change_payment_status(): void
@@ -152,9 +173,68 @@ class PaymentWorkflowTest extends TestCase
             ->post(route('payments.store'), [
                 'loan_id' => $loan->id,
                 'payment_method_id' => $method->id,
-                'transaction_id' => 'TXN-2002',
+                'transaction_id' => 'TXN-20022567',
                 'screenshot' => $this->fakeScreenshot(),
             ])
             ->assertForbidden();
+    }
+
+    public function test_customer_sees_copyable_payment_link_and_cannot_edit_it(): void
+    {
+        $customer = User::factory()->customer()->create();
+        $loan = Loan::factory()->create([
+            'user_id' => $customer->id,
+            'status' => LoanStatus::Approved,
+        ]);
+        PaymentMethod::factory()->create([
+            'name' => 'UPI',
+            'account_number' => '7780286550@sbi',
+        ]);
+
+        $this->actingAs($customer)
+            ->get(route('loans.pay', $loan))
+            ->assertOk()
+            ->assertSee('Make Payment')
+            ->assertSee('12 digits required')
+            ->assertSee('minlength="12"', false)
+            ->assertSee('Copy link')
+            ->assertSee('7780286550@sbi')
+            ->assertSee('images/payments/upi.png', false)
+            ->assertSee('images/payments/gpay.png', false)
+            ->assertSee('images/payments/phonepe.png', false)
+            ->assertSee('images/payments/paytm.png', false)
+            ->assertSee('Only an administrator can change this link.')
+            ->assertDontSee('name="account_number"', false)
+            ->assertDontSee('name="payment_link"', false)
+            ->assertDontSee('Add method');
+    }
+
+    public function test_admin_sets_the_shared_payment_link(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)
+            ->put(route('admin.payment-link.update'), [
+                'payment_link' => '778028656@omni',
+            ])
+            ->assertRedirect(route('admin.payment-link.edit'));
+
+        $this->get(route('admin.payment-link.edit'))
+            ->assertOk()
+            ->assertSee('778028656@omni')
+            ->assertDontSee('Add method')
+            ->assertDontSee('PayFast')
+            ->assertDontSee('JazzCash');
+
+        $customer = User::factory()->customer()->create();
+        $loan = Loan::factory()->create([
+            'user_id' => $customer->id,
+            'status' => LoanStatus::Approved,
+        ]);
+
+        $this->actingAs($customer)
+            ->get(route('loans.pay', $loan))
+            ->assertOk()
+            ->assertSee('778028656@omni');
     }
 }

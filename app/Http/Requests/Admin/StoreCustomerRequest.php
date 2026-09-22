@@ -17,7 +17,7 @@ class StoreCustomerRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'phone' => PhoneNumber::normalize($this->input('country_code', '92'), $this->input('phone')),
+            'phone' => PhoneNumber::normalize($this->input('country_code', PhoneNumber::defaultCountryCode()), $this->input('phone')),
         ]);
     }
 
@@ -25,12 +25,14 @@ class StoreCustomerRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'country_code' => ['required', 'string', Rule::in(array_keys(PhoneNumber::countryCodes()))],
             'phone' => ['required', 'string', 'max:20', 'unique:users,phone'],
             'status' => ['required', Rule::enum(UserStatus::class)],
             'available_credit' => ['nullable', 'numeric', 'min:0'],
             'credit_min' => ['nullable', 'numeric', 'min:0'],
             'credit_max' => ['nullable', 'numeric', 'min:0'],
             'eligible_offer' => ['nullable', 'numeric', 'min:0'],
+            'app_name' => ['required', 'string', 'max:80'],
         ];
     }
 }

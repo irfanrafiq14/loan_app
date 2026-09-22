@@ -12,9 +12,14 @@
     <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-page font-sans antialiased">
-    <div class="mx-auto min-h-screen w-full max-w-md bg-white shadow-sm sm:max-w-lg">
-        {{ $slot }}
+<body class="theme-customer font-sans antialiased" x-data="storedAppBrand(@js($appName ?? ''))">
+    <div class="guest-shell">
+        <div class="guest-blob guest-blob-one"></div>
+        <div class="guest-blob guest-blob-two"></div>
+        <div class="guest-blob guest-blob-three"></div>
+        <div class="guest-card">
+            {{ $slot }}
+        </div>
     </div>
 </body>
 </html>

@@ -1,6 +1,6 @@
 # MaxWallet
 
-MaxWallet is a Laravel 12 loan management app with a secure admin panel and a mobile-first customer experience. Admins create customers, issue expiring login links, assign loans, and review payment screenshots. Customers sign in with a private link plus OTP, then manage their home, orders, and profile.
+MaxWallet is a Laravel 12 loan management app with a secure admin panel and a mobile-first customer experience. Admins create customers with an app name, assign loans, and review payment screenshots. Customers open the app URL and sign in with phone plus OTP.
 
 ## Stack
 
@@ -71,7 +71,7 @@ Admin:
 - Email: `admin@maxwallet.test`
 - Password: `password`
 
-Customers do not use a password. From the admin panel, open **Login links**, choose a customer (Muhammad Irfan or Ayesha Khan), set the app name to `MaxWallet`, and copy the generated `/access/{token}` URL.
+Customers do not use a password. From the admin panel, create a customer and set their **app name**. Copy the base app URL from the customer page (nothing extra — no `?app=` query) and send it to them. They open that URL, sign in with phone and OTP, and then their app name is shown.
 
 OTP is a local demo flow: no SMS is sent. The verification screen shows a 59-second timer, then auto-fetches and submits the code after about 3–4 seconds.
 
@@ -79,7 +79,7 @@ OTP is a local demo flow: no SMS is sent. The verification screen shows a 59-sec
 
 Customer:
 
-- `/access/{token}`
+- `/`
 - `/verify-otp`
 - `/home`
 - `/orders`
@@ -93,15 +93,14 @@ Admin:
 - `/admin/login`
 - `/admin/dashboard`
 - `/admin/customers`
-- `/admin/login-links`
 - `/admin/loans`
 - `/admin/payments`
-- `/admin/payment-methods`
+- `/admin/payment-link`
+- `/admin/support-email`
 
 ## Security notes
 
-- Login-link tokens are cryptographically random. Only a SHA-256 hash is stored.
-- Links expire, can be revoked, and become single-use after a successful login.
+- Customers sign in with a registered phone number and a hashed OTP. No special login-link tokens are issued.
 - OTP values are hashed in the database. A short-lived demo code is kept in the session only so the UI can auto-fill it.
 - Payment screenshots are stored on the private `local` disk (`storage/app/private`). Customers cannot browse file paths. Admins view screenshots through an authorized route.
 - Customers can only see and pay their own loans. Policies block ID tampering in the URL.
@@ -113,4 +112,4 @@ Admin:
 php artisan test
 ```
 
-The suite covers admin login, customer OTP login, expired links, unauthorized loan access, payment submission, screenshot validation, admin approve/reject, and logout.
+The suite covers admin login, customer OTP login, unauthorized loan access, payment submission, screenshot validation, admin approve/reject, and logout.

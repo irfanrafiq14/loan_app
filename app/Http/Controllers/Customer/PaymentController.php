@@ -27,9 +27,10 @@ class PaymentController extends Controller
                 ->with('error', 'This loan already has a payment in review or is not payable.');
         }
 
-        $methods = PaymentMethod::query()->active()->get();
+        $methods = PaymentMethod::catalogMethods();
+        $paymentLink = PaymentMethod::sharedLink();
 
-        return view('customer.pay', compact('loan', 'methods'));
+        return view('customer.pay', compact('loan', 'methods', 'paymentLink'));
     }
 
     public function store(StorePaymentRequest $request): RedirectResponse

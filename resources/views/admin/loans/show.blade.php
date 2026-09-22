@@ -18,11 +18,12 @@
                     <strong>Featured offer</strong>
                 @endif
             </p>
-            <p class="mt-2"><span class="text-muted">Loan ID:</span> <strong>{{ $loan->reference() }}</strong></p>
-            <p class="mt-2"><span class="text-muted">Amount:</span> <strong>{{ \App\Support\Money::format($loan->amount) }}</strong></p>
+            <p class="mt-2"><span class="text-muted">Reference:</span> <strong>{{ $loan->reference() }}</strong></p>
+            <p class="mt-2"><span class="text-muted">Total due:</span> <strong>{{ \App\Support\Money::format($loan->totalDueAmount()) }}</strong></p>
+            <p class="mt-2"><span class="text-muted">Loan amount:</span> <strong>{{ \App\Support\Money::format($loan->amount) }}</strong></p>
             <p class="mt-2"><span class="text-muted">Status:</span> <strong>{{ $loan->status->label() }}</strong></p>
-            <p class="mt-2"><span class="text-muted">Dates:</span> {{ optional($loan->loan_date)->format('d M Y') }} → {{ optional($loan->due_date)->format('d M Y') }}</p>
-            <p class="mt-2 text-muted">{{ $loan->description }}</p>
+            <p class="mt-2"><span class="text-muted">Loan date:</span> {{ optional($loan->loan_date)->format('M j, Y') ?? '—' }}</p>
+            <p class="mt-2"><span class="text-muted">Due date:</span> {{ optional($loan->due_date)->format('M j, Y') ?? '—' }}</p>
         </section>
         <section class="rounded-3xl bg-white p-5 shadow-sm">
             <h2 class="font-bold">Payment submissions</h2>

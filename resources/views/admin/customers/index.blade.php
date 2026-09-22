@@ -11,6 +11,7 @@
                 <tr>
                     <th class="px-4 py-3">Name</th>
                     <th class="px-4 py-3">Phone</th>
+                    <th class="px-4 py-3">App</th>
                     <th class="px-4 py-3">Status</th>
                     <th class="px-4 py-3"></th>
                 </tr>
@@ -20,6 +21,7 @@
                     <tr class="border-t border-slate-100">
                         <td class="px-4 py-3 font-semibold">{{ $customer->name }}</td>
                         <td class="px-4 py-3">{{ $customer->displayPhone() }}</td>
+                        <td class="px-4 py-3">{{ $customer->brandedName() ?: '—' }}</td>
                         <td class="px-4 py-3 capitalize">{{ $customer->status->value }}</td>
                         <td class="px-4 py-3 text-right">
                             <a href="{{ route('admin.customers.show', $customer) }}" class="font-semibold text-brand">View</a>

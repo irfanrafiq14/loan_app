@@ -22,7 +22,7 @@ class LoanPaymentFactory extends Factory
             'loan_id' => $loan->id,
             'user_id' => $loan->user_id,
             'payment_method_id' => PaymentMethod::factory(),
-            'transaction_id' => 'TXN-'.fake()->numerify('######'),
+            'transaction_id' => 'TXN-'.fake()->numerify('########'),
             'screenshot_path' => 'payment-screenshots/demo.jpg',
             'status' => PaymentStatus::Pending,
             'admin_notes' => null,

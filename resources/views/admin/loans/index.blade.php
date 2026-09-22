@@ -23,7 +23,7 @@
                 <tr>
                     <th class="px-4 py-3">Loan</th>
                     <th class="px-4 py-3">Customer</th>
-                    <th class="px-4 py-3">Amount</th>
+                    <th class="px-4 py-3">Total due</th>
                     <th class="px-4 py-3">Status</th>
                     <th class="px-4 py-3"></th>
                 </tr>
@@ -33,7 +33,7 @@
                     <tr class="border-t border-slate-100">
                         <td class="px-4 py-3 font-semibold">{{ $loan->title }}<div class="text-xs text-muted">{{ $loan->reference() }}</div></td>
                         <td class="px-4 py-3">{{ $loan->user->name }}</td>
-                        <td class="px-4 py-3">{{ \App\Support\Money::format($loan->amount) }}</td>
+                        <td class="px-4 py-3">{{ \App\Support\Money::format($loan->totalDueAmount()) }}</td>
                         <td class="px-4 py-3">{{ $loan->status->label() }}</td>
                         <td class="px-4 py-3">
                             <div class="flex justify-end gap-3">
