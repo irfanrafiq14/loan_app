@@ -72,30 +72,13 @@ class PaymentMethod extends Model
         return asset('images/payments/'.$file);
     }
 
-    public static function sharedLink(): string
+    public static function ensureCatalog(): void
     {
-        $link = static::query()
-            ->whereIn('name', static::catalog())
-            ->whereNotNull('account_number')
-            ->where('account_number', '!=', '')
-            ->value('account_number');
-
-        if ($link) {
-            return trim((string) $link);
-        }
-
-        return trim((string) static::query()->value('account_number'));
-    }
-
-    public static function syncSharedLink(?string $link = null): void
-    {
-        $link = trim((string) ($link ?? static::sharedLink()));
-
         foreach (static::catalog() as $index => $name) {
-            static::query()->updateOrCreate(
+            static::query()->firstOrCreate(
                 ['name' => $name],
                 [
-                    'account_number' => $link,
+                    'account_number' => null,
                     'instructions' => 'Copy the payment link, pay in this app, then submit the transaction ID and screenshot.',
                     'is_active' => true,
                     'sort_order' => $index + 1,
@@ -113,7 +96,7 @@ class PaymentMethod extends Model
      */
     public static function catalogMethods()
     {
-        static::syncSharedLink();
+        static::ensureCatalog();
 
         return static::query()
             ->whereIn('name', static::catalog())

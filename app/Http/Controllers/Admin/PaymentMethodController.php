@@ -3,28 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\UpdatePaymentLinkRequest;
-use App\Models\PaymentMethod;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
 
 class PaymentMethodController extends Controller
 {
-    public function edit(): View
+    public function edit(): RedirectResponse
     {
-        PaymentMethod::syncSharedLink();
-
-        return view('admin.payment-link', [
-            'paymentLink' => PaymentMethod::sharedLink(),
-        ]);
+        return redirect()->route('admin.customers.index');
     }
 
-    public function update(UpdatePaymentLinkRequest $request): RedirectResponse
+    public function update(): RedirectResponse
     {
-        PaymentMethod::syncSharedLink($request->string('payment_link')->toString());
-
-        return redirect()
-            ->route('admin.payment-link.edit')
-            ->with('success', 'Payment link updated. Customers can copy it on the pay page.');
+        return redirect()->route('admin.customers.index');
     }
 }

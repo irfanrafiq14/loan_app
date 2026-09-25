@@ -33,6 +33,7 @@ class User extends Authenticatable
         'eligible_offer',
         'app_name',
         'app_token',
+        'payment_link',
         'support_email',
     ];
 
@@ -215,6 +216,11 @@ class User extends Authenticatable
     public function brandedName(): string
     {
         return trim((string) $this->app_name);
+    }
+
+    public function paymentLink(): string
+    {
+        return trim((string) $this->payment_link);
     }
 
     public function appToken(): string

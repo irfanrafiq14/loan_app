@@ -28,7 +28,7 @@ class PaymentController extends Controller
         }
 
         $methods = PaymentMethod::catalogMethods();
-        $paymentLink = PaymentMethod::sharedLink();
+        $paymentLink = $loan->user?->paymentLink() ?? '';
 
         return view('customer.pay', compact('loan', 'methods', 'paymentLink'));
     }

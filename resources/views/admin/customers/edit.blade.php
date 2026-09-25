@@ -18,6 +18,12 @@
             @error('app_name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
         </div>
         <div>
+            <label class="mb-2 block text-sm font-semibold">Payment link</label>
+            <input name="payment_link" value="{{ old('payment_link', $customer->payment_link) }}" placeholder="778028656@omni" class="w-full rounded-2xl border border-slate-200 px-4 py-3" required>
+            <p class="mt-1 text-xs text-muted">Shown only to this customer on the payment page.</p>
+            @error('payment_link') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+        </div>
+        <div>
             <label class="mb-2 block text-sm font-semibold">Status</label>
             <select name="status" class="w-full rounded-2xl border border-slate-200 px-4 py-3">
                 <option value="active" @selected($customer->status->value === 'active')>Active</option>

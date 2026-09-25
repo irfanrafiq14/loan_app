@@ -33,6 +33,7 @@ class StoreCustomerRequest extends FormRequest
             'credit_max' => ['nullable', 'numeric', 'min:0'],
             'eligible_offer' => ['nullable', 'numeric', 'min:0'],
             'app_name' => ['required', 'string', 'max:80'],
+            'payment_link' => ['required', 'string', 'max:180'],
         ];
     }
 }

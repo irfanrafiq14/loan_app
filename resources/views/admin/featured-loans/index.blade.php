@@ -4,8 +4,9 @@
         <a href="{{ route('admin.featured-loans.create') }}" class="shrink-0 rounded-2xl brand-gradient px-4 py-3 text-sm font-bold text-white">Add featured loan</a>
     </div>
 
-    <div class="overflow-hidden rounded-3xl bg-white shadow-sm">
-        <table class="w-full text-left text-sm">
+    <div class="rounded-3xl bg-white shadow-sm">
+        <div class="admin-table-scroll overflow-x-auto">
+        <table class="min-w-[40rem] whitespace-nowrap text-left text-sm">
             <thead class="bg-slate-50 text-muted">
                 <tr>
                     <th class="px-4 py-3">Image</th>
@@ -40,5 +41,6 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
     </div>
 </x-layouts.admin>

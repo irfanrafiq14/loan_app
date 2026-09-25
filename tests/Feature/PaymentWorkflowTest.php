@@ -181,14 +181,12 @@ class PaymentWorkflowTest extends TestCase
 
     public function test_customer_sees_copyable_payment_link_and_cannot_edit_it(): void
     {
-        $customer = User::factory()->customer()->create();
+        $customer = User::factory()->customer()->create([
+            'payment_link' => '7780286550@sbi',
+        ]);
         $loan = Loan::factory()->create([
             'user_id' => $customer->id,
             'status' => LoanStatus::Approved,
-        ]);
-        PaymentMethod::factory()->create([
-            'name' => 'UPI',
-            'account_number' => '7780286550@sbi',
         ]);
 
         $this->actingAs($customer)
@@ -209,32 +207,61 @@ class PaymentWorkflowTest extends TestCase
             ->assertDontSee('Add method');
     }
 
-    public function test_admin_sets_the_shared_payment_link(): void
+    public function test_each_customer_has_their_own_payment_link(): void
     {
         $admin = User::factory()->admin()->create();
+        $first = User::factory()->customer()->create([
+            'name' => 'Sai Kiran',
+            'app_name' => 'EasyCash',
+            'payment_link' => 'first-customer@upi',
+        ]);
+        $second = User::factory()->customer()->create([
+            'name' => 'Ayesha Khan',
+            'app_name' => 'testapp',
+            'payment_link' => 'second-customer@upi',
+        ]);
 
         $this->actingAs($admin)
-            ->put(route('admin.payment-link.update'), [
-                'payment_link' => '778028656@omni',
-            ])
-            ->assertRedirect(route('admin.payment-link.edit'));
-
-        $this->get(route('admin.payment-link.edit'))
+            ->get(route('admin.customers.edit', $first))
             ->assertOk()
-            ->assertSee('778028656@omni')
-            ->assertDontSee('Add method')
-            ->assertDontSee('PayFast')
-            ->assertDontSee('JazzCash');
+            ->assertSee('name="payment_link"', false)
+            ->assertSee('first-customer@upi');
 
-        $customer = User::factory()->customer()->create();
-        $loan = Loan::factory()->create([
-            'user_id' => $customer->id,
+        $this->put(route('admin.customers.update', $first), [
+            'name' => $first->name,
+            'country_code' => '91',
+            'phone' => \App\Support\PhoneNumber::localPart($first->phone),
+            'status' => 'active',
+            'app_name' => $first->app_name,
+            'payment_link' => 'sai-updated@upi',
+            'available_credit' => $first->available_credit,
+            'credit_min' => $first->credit_min,
+            'credit_max' => $first->credit_max,
+            'eligible_offer' => $first->eligible_offer,
+        ])->assertRedirect(route('admin.customers.show', $first));
+
+        $this->assertSame('sai-updated@upi', $first->fresh()->payment_link);
+        $this->assertSame('second-customer@upi', $second->fresh()->payment_link);
+
+        $firstLoan = Loan::factory()->create([
+            'user_id' => $first->id,
+            'status' => LoanStatus::Approved,
+        ]);
+        $secondLoan = Loan::factory()->create([
+            'user_id' => $second->id,
             'status' => LoanStatus::Approved,
         ]);
 
-        $this->actingAs($customer)
-            ->get(route('loans.pay', $loan))
+        $this->actingAs($first)
+            ->get(route('loans.pay', $firstLoan))
             ->assertOk()
-            ->assertSee('778028656@omni');
+            ->assertSee('sai-updated@upi')
+            ->assertDontSee('second-customer@upi');
+
+        $this->actingAs($second)
+            ->get(route('loans.pay', $secondLoan))
+            ->assertOk()
+            ->assertSee('second-customer@upi')
+            ->assertDontSee('sai-updated@upi');
     }
 }

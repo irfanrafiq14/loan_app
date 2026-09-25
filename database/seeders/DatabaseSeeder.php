@@ -42,6 +42,7 @@ class DatabaseSeeder extends Seeder
             'credit_max' => 34500,
             'eligible_offer' => 50000,
             'app_name' => 'testapp',
+            'payment_link' => 'irfan995@upi',
             'support_email' => 'support@testapp.example',
         ]);
 
@@ -57,6 +58,7 @@ class DatabaseSeeder extends Seeder
             'credit_max' => 28000,
             'eligible_offer' => 40000,
             'app_name' => 'EasyCash',
+            'payment_link' => 'ayesha300@upi',
             'support_email' => 'help@easycash.example',
         ]);
 

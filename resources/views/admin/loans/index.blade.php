@@ -17,8 +17,9 @@
     <div class="mb-4 flex justify-end">
         <a href="{{ route('admin.loans.create') }}" class="rounded-2xl brand-gradient px-4 py-3 text-sm font-bold text-white">Create loan</a>
     </div>
-    <div class="overflow-hidden rounded-3xl bg-white shadow-sm">
-        <table class="w-full text-left text-sm">
+    <div class="rounded-3xl bg-white shadow-sm">
+        <div class="admin-table-scroll overflow-x-auto">
+        <table class="min-w-[40rem] whitespace-nowrap text-left text-sm">
             <thead class="bg-slate-50 text-muted">
                 <tr>
                     <th class="px-4 py-3">Loan</th>
@@ -52,6 +53,7 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
         <div class="p-4">{{ $loans->links() }}</div>
     </div>
 </x-layouts.admin>

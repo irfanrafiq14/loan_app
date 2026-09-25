@@ -375,3 +375,23 @@ input[type='range'] {
         height: 3.6rem;
     }
 }
+
+.admin-table-scroll {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.admin-table-scroll table {
+    width: max-content;
+    min-width: 40rem;
+    border-collapse: collapse;
+}
+
+.admin-table-scroll th,
+.admin-table-scroll td {
+    white-space: nowrap !important;
+}

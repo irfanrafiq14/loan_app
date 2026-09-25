@@ -8,8 +8,9 @@
         </select>
         <button class="rounded-2xl bg-white px-4 py-3 font-bold shadow-sm">Filter</button>
     </form>
-    <div class="overflow-hidden rounded-3xl bg-white shadow-sm">
-        <table class="w-full text-left text-sm">
+    <div class="rounded-3xl bg-white shadow-sm">
+        <div class="admin-table-scroll overflow-x-auto">
+        <table class="min-w-[40rem] whitespace-nowrap text-left text-sm">
             <thead class="bg-slate-50 text-muted">
                 <tr>
                     <th class="px-4 py-3">Customer</th>
@@ -31,6 +32,7 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
         <div class="p-4">{{ $payments->links() }}</div>
     </div>
 </x-layouts.admin>

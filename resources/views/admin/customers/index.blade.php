@@ -5,8 +5,9 @@
         </form>
         <a href="{{ route('admin.customers.create') }}" class="rounded-2xl brand-gradient px-4 py-3 text-center text-sm font-bold text-white">Create customer</a>
     </div>
-    <div class="overflow-hidden rounded-3xl border border-slate-100 bg-white">
-        <table class="w-full text-left text-sm">
+    <div class="rounded-3xl border border-slate-100 bg-white">
+        <div class="admin-table-scroll overflow-x-auto">
+        <table class="min-w-[40rem] whitespace-nowrap text-left text-sm">
             <thead class="bg-slate-50 text-muted">
                 <tr>
                     <th class="px-4 py-3">Name</th>
@@ -30,6 +31,7 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
         <div class="p-4">{{ $customers->links() }}</div>
     </div>
 </x-layouts.admin>

@@ -31,7 +31,6 @@
                     ['admin.loans.index', 'Loans'],
                     ['admin.featured-loans.index', 'Featured loans'],
                     ['admin.payments.index', 'Payments'],
-                    ['admin.payment-link.edit', 'Payment link'],
                     ['admin.support-email.edit', 'Support email'],
                 ] as [$route, $label])
                     <a href="{{ route($route) }}" class="rounded-xl px-4 py-3 text-sm font-semibold {{ request()->routeIs(str_replace('.index', '.*', $route)) || request()->routeIs($route) ? 'bg-white/15' : 'text-white/80 hover:bg-white/10' }}">
@@ -45,7 +44,7 @@
             </form>
         </aside>
 
-        <div>
+        <div class="min-w-0">
             <header class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4 lg:px-8">
                 <button class="rounded-xl border border-slate-200 p-2 lg:hidden" @click="open = true" type="button">Menu</button>
                 <h1 class="text-lg font-bold">{{ $heading ?? 'Dashboard' }}</h1>
@@ -61,12 +60,11 @@
                     <a href="{{ route('admin.loans.index') }}" class="block rounded-xl px-4 py-3">Loans</a>
                     <a href="{{ route('admin.featured-loans.index') }}" class="block rounded-xl px-4 py-3">Featured loans</a>
                     <a href="{{ route('admin.payments.index') }}" class="block rounded-xl px-4 py-3">Payments</a>
-                    <a href="{{ route('admin.payment-link.edit') }}" class="block rounded-xl px-4 py-3">Payment link</a>
                     <a href="{{ route('admin.support-email.edit') }}" class="block rounded-xl px-4 py-3">Support email</a>
                 </nav>
             </aside>
 
-            <main class="px-4 py-6 lg:px-8">
+            <main class="min-w-0 px-4 py-6 lg:px-8">
                 @if (session('success'))
                     <div class="mb-4 rounded-2xl bg-brand-soft px-4 py-3 text-sm font-medium text-brand">{{ session('success') }}</div>
                 @endif

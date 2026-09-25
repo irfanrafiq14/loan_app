@@ -6,7 +6,6 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FeaturedLoanController;
 use App\Http\Controllers\Admin\LoanController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
-use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\SupportEmailController;
 use App\Http\Controllers\Customer\AccessController;
 use App\Http\Controllers\Customer\ApplyController;
@@ -72,12 +71,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/payments/{payment}/reject', [AdminPaymentController::class, 'reject'])->name('payments.reject');
         Route::get('/payments/{payment}/screenshot', [AdminPaymentController::class, 'screenshot'])->name('payments.screenshot');
 
-        Route::get('/payment-link', [PaymentMethodController::class, 'edit'])->name('payment-link.edit');
-        Route::put('/payment-link', [PaymentMethodController::class, 'update'])->name('payment-link.update');
+        Route::get('/payment-link', fn () => redirect()->route('admin.customers.index'))->name('payment-link.edit');
+        Route::put('/payment-link', fn () => redirect()->route('admin.customers.index'))->name('payment-link.update');
         Route::get('/support-email', [SupportEmailController::class, 'edit'])->name('support-email.edit');
         Route::put('/support-email', [SupportEmailController::class, 'update'])->name('support-email.update');
-        Route::get('/payment-methods', fn () => redirect()->route('admin.payment-link.edit'));
-        Route::get('/payment-methods/create', fn () => redirect()->route('admin.payment-link.edit'));
-        Route::get('/payment-methods/{payment_method}/edit', fn () => redirect()->route('admin.payment-link.edit'));
+        Route::get('/payment-methods', fn () => redirect()->route('admin.customers.index'));
+        Route::get('/payment-methods/create', fn () => redirect()->route('admin.customers.index'));
+        Route::get('/payment-methods/{payment_method}/edit', fn () => redirect()->route('admin.customers.index'));
     });
 });

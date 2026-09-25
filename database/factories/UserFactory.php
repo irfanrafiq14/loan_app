@@ -31,6 +31,7 @@ class UserFactory extends Factory
             'credit_max' => 34500,
             'eligible_offer' => 50000,
             'app_name' => fake()->optional()->randomElement(['EasyCash', 'testapp']),
+            'payment_link' => fake()->optional()->bothify('########@upi'),
             'support_email' => 'support@example.com',
             'remember_token' => Str::random(10),
         ];

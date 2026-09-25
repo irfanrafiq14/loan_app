@@ -28,6 +28,11 @@ class AdminLoginTest extends TestCase
             ->assertOk()
             ->assertSee('Total customers');
 
+        $this->get(route('admin.customers.index'))
+            ->assertOk()
+            ->assertSee('admin-table-scroll', false)
+            ->assertSee('min-w-[40rem]', false);
+
         $this->get('/admin')->assertRedirect(route('admin.dashboard'));
     }
 
@@ -56,7 +61,8 @@ class AdminLoginTest extends TestCase
             ->assertSee('name="country_code"', false)
             ->assertSee('value="91"', false)
             ->assertSee('+91')
-            ->assertDontSee('+92 Pakistan');
+            ->assertDontSee('+92 Pakistan')
+            ->assertSee('Payment link');
 
         $this->post(route('admin.customers.store'), [
                 'name' => 'Sai Kiran',
@@ -64,6 +70,7 @@ class AdminLoginTest extends TestCase
                 'phone' => '9876543210',
                 'status' => 'active',
                 'app_name' => 'EasyCash',
+                'payment_link' => 'saikiran987@upi',
                 'available_credit' => 34500,
                 'credit_min' => 2000,
                 'credit_max' => 34500,
@@ -74,12 +81,14 @@ class AdminLoginTest extends TestCase
         $customer = User::query()->where('phone', '919876543210')->first();
         $this->assertNotNull($customer);
         $this->assertSame('EasyCash', $customer->app_name);
+        $this->assertSame('saikiran987@upi', $customer->payment_link);
 
         $this->assertGreaterThan(6, strlen((string) $customer->app_token));
 
         $this->get(route('admin.customers.show', $customer))
             ->assertOk()
             ->assertSee('EasyCash')
+            ->assertSee('saikiran987@upi')
             ->assertSee('Send this app link')
             ->assertSee(\App\Support\AppBrand::brandedLocalUrl($customer))
             ->assertDontSee('Network (phone on same Wi‑Fi)')

@@ -30,6 +30,8 @@
             <p class="font-bold">{{ $customer->displayPhone() }}</p>
             <p class="mt-3 text-sm text-muted">Status</p>
             <p class="font-bold capitalize">{{ $customer->status->value }}</p>
+            <p class="mt-3 text-sm text-muted">Payment link</p>
+            <p class="break-all font-bold">{{ $customer->paymentLink() !== '' ? $customer->paymentLink() : '—' }}</p>
         </section>
         <section class="lg:col-span-2 rounded-3xl bg-white p-5 shadow-sm">
             <h2 class="font-bold">Loans</h2>
