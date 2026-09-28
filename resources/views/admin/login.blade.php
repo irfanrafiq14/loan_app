@@ -7,6 +7,9 @@
             <h1 class="text-2xl font-extrabold text-brand">FlexMoney Admin</h1>
             <p class="mt-1 text-sm text-muted">Sign in to manage customers, loans, and payments.</p>
         </div>
+        @if (session('error'))
+            <div class="mt-6 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">{{ session('error') }}</div>
+        @endif
         <form method="POST" action="{{ route('admin.login.store') }}" class="mt-8 space-y-4">
             @csrf
             <div>

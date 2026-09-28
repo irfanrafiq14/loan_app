@@ -15,9 +15,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PaymentController extends Controller
 {
-    public function __construct(private readonly PaymentService $payments)
-    {
-    }
+    public function __construct(private readonly PaymentService $payments) {}
 
     public function index(Request $request): View
     {
@@ -25,7 +23,7 @@ class PaymentController extends Controller
 
         $payments = LoanPayment::query()
             ->with(['user', 'loan', 'paymentMethod'])
-            ->when($request->string('status')->toString(), fn ($query, $status) => $query->where('status', $status))
+            ->when($request->string('status')->toString(), fn($query, $status) => $query->where('status', $status))
             ->latest()
             ->paginate(15)
             ->withQueryString();
@@ -81,6 +79,19 @@ class PaymentController extends Controller
         return redirect()
             ->route('admin.payments.show', $payment)
             ->with('success', 'Payment rejected. The customer can see the reason.');
+    }
+
+    public function destroy(LoanPayment $payment): RedirectResponse
+    {
+        $this->authorize('delete', $payment);
+
+        $screenshotPath = $payment->screenshot_path;
+        $payment->delete();
+        Storage::disk('local')->delete($screenshotPath);
+
+        return redirect()
+            ->route('admin.payments.index')
+            ->with('success', 'Payment history and screenshot deleted.');
     }
 
     public function screenshot(LoanPayment $payment): StreamedResponse

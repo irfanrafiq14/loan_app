@@ -4,7 +4,10 @@ namespace Tests\Feature;
 
 use App\Models\Setting;
 use App\Models\User;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Illuminate\Session\TokenMismatchException;
 use Tests\TestCase;
 
 class AdminLoginTest extends TestCase
@@ -51,6 +54,21 @@ class AdminLoginTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_expired_admin_form_redirects_to_login_with_notice(): void
+    {
+        $response = app(ExceptionHandler::class)->render(
+            Request::create('/admin', 'POST'),
+            new TokenMismatchException(),
+        );
+
+        $this->assertSame(302, $response->getStatusCode());
+        $this->assertSame(route('admin.login'), $response->headers->get('Location'));
+        $this->withSession(['error' => 'Your session expired. Please sign in again.'])
+            ->get(route('admin.login'))
+            ->assertOk()
+            ->assertSee('Your session expired. Please sign in again.');
+    }
+
     public function test_admin_creates_customer_with_app_name_and_sees_app_link(): void
     {
         $admin = User::factory()->admin()->create();
@@ -65,17 +83,17 @@ class AdminLoginTest extends TestCase
             ->assertSee('Payment link');
 
         $this->post(route('admin.customers.store'), [
-                'name' => 'Sai Kiran',
-                'country_code' => '91',
-                'phone' => '9876543210',
-                'status' => 'active',
-                'app_name' => 'EasyCash',
-                'payment_link' => 'saikiran987@upi',
-                'available_credit' => 34500,
-                'credit_min' => 2000,
-                'credit_max' => 34500,
-                'eligible_offer' => 50000,
-            ])
+            'name' => 'Sai Kiran',
+            'country_code' => '91',
+            'phone' => '9876543210',
+            'status' => 'active',
+            'app_name' => 'EasyCash',
+            'payment_link' => 'saikiran987@upi',
+            'available_credit' => 34500,
+            'credit_min' => 2000,
+            'credit_max' => 34500,
+            'eligible_offer' => 50000,
+        ])
             ->assertRedirect();
 
         $customer = User::query()->where('phone', '919876543210')->first();

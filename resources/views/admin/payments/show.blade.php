@@ -36,13 +36,27 @@
     @endif
 
     <section class="mt-4 rounded-3xl bg-white p-5 shadow-sm">
-        <h2 class="font-bold">Payment history for this loan</h2>
+        <div class="flex items-center justify-between gap-4">
+            <h2 class="font-bold">Payment history for this loan</h2>
+            <form method="POST" action="{{ route('admin.payments.destroy', $payment) }}" onsubmit="return confirm('Delete this payment history and its screenshot?')">
+                @csrf
+                @method('DELETE')
+                <button class="text-sm font-bold text-red-600">Delete current record</button>
+            </form>
+        </div>
         <div class="mt-3 space-y-2 text-sm">
             @forelse ($history as $item)
-                <a href="{{ route('admin.payments.show', $item) }}" class="flex justify-between rounded-2xl bg-slate-50 px-4 py-3">
-                    <span>{{ $item->transaction_id }} · {{ optional($item->submitted_at)->format('d M Y') }}</span>
-                    <span>{{ $item->status->label() }}</span>
-                </a>
+                <div class="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+                    <a href="{{ route('admin.payments.show', $item) }}" class="flex min-w-0 flex-1 justify-between gap-3">
+                        <span class="truncate">{{ $item->transaction_id }} · {{ optional($item->submitted_at)->format('d M Y') }}</span>
+                        <span class="shrink-0">{{ $item->status->label() }}</span>
+                    </a>
+                    <form method="POST" action="{{ route('admin.payments.destroy', $item) }}" onsubmit="return confirm('Delete this payment history and its screenshot?')">
+                        @csrf
+                        @method('DELETE')
+                        <button class="shrink-0 text-xs font-bold text-red-600">Delete</button>
+                    </form>
+                </div>
             @empty
                 <p class="text-muted">No earlier submissions.</p>
             @endforelse

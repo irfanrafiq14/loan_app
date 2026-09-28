@@ -95,6 +95,58 @@ class PaymentWorkflowTest extends TestCase
             ->assertSee('Screenshot is unreadable.');
     }
 
+    public function test_admin_can_delete_payment_history_and_its_screenshot(): void
+    {
+        Storage::fake('local');
+
+        $admin = User::factory()->admin()->create();
+        $customer = User::factory()->customer()->create();
+        $loan = Loan::factory()->create(['user_id' => $customer->id]);
+        $screenshotPath = 'payment-screenshots/' . $customer->id . '/receipt.jpg';
+        Storage::disk('local')->put($screenshotPath, 'screenshot contents');
+        $payment = LoanPayment::factory()->forLoan($loan)->create([
+            'screenshot_path' => $screenshotPath,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.payments.index'))
+            ->assertOk()
+            ->assertSee('Delete this payment history and its screenshot?');
+
+        $this->get(route('admin.payments.show', $payment))
+            ->assertOk()
+            ->assertSee('Delete current record');
+
+        $this->actingAs($admin)
+            ->delete(route('admin.payments.destroy', $payment))
+            ->assertRedirect(route('admin.payments.index'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseMissing('loan_payments', ['id' => $payment->id]);
+        $this->assertDatabaseHas('loans', ['id' => $loan->id]);
+        $this->assertFalse(Storage::disk('local')->exists($screenshotPath));
+    }
+
+    public function test_customer_cannot_delete_payment_history(): void
+    {
+        Storage::fake('local');
+
+        $customer = User::factory()->customer()->create();
+        $loan = Loan::factory()->create(['user_id' => $customer->id]);
+        $screenshotPath = 'payment-screenshots/' . $customer->id . '/receipt.jpg';
+        Storage::disk('local')->put($screenshotPath, 'screenshot contents');
+        $payment = LoanPayment::factory()->forLoan($loan)->create([
+            'screenshot_path' => $screenshotPath,
+        ]);
+
+        $this->actingAs($customer)
+            ->delete(route('admin.payments.destroy', $payment))
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('loan_payments', ['id' => $payment->id]);
+        $this->assertTrue(Storage::disk('local')->exists($screenshotPath));
+    }
+
     public function test_payment_screenshot_must_be_a_valid_image(): void
     {
         Storage::fake('local');
@@ -125,7 +177,7 @@ class PaymentWorkflowTest extends TestCase
             ->assertSessionHasErrors('screenshot');
     }
 
-    public function test_transaction_id_must_be_at_least_12_characters(): void
+    public function test_transaction_id_must_be_exactly_12_characters(): void
     {
         Storage::fake('local');
 
@@ -144,6 +196,13 @@ class PaymentWorkflowTest extends TestCase
                 'screenshot' => $this->fakeScreenshot(),
             ])
             ->assertSessionHasErrors('transaction_id');
+
+        $this->post(route('payments.store'), [
+            'loan_id' => $loan->id,
+            'payment_method_id' => $method->id,
+            'transaction_id' => 'TXN-1001256790',
+            'screenshot' => $this->fakeScreenshot(),
+        ])->assertSessionHasErrors('transaction_id');
     }
 
     public function test_customer_cannot_change_payment_status(): void
@@ -193,8 +252,9 @@ class PaymentWorkflowTest extends TestCase
             ->get(route('loans.pay', $loan))
             ->assertOk()
             ->assertSee('Make Payment')
-            ->assertSee('12 digits required')
+            ->assertSee('12 characters required')
             ->assertSee('minlength="12"', false)
+            ->assertSee('maxlength="12"', false)
             ->assertSee('Copy link')
             ->assertSee('7780286550@sbi')
             ->assertSee('images/payments/upi.png', false)

@@ -78,8 +78,8 @@
                 <h2 class="text-base font-extrabold">Step 3: Enter Transaction ID</h2>
                 <p class="mt-1 text-sm text-muted">After payment, enter the UTR / transaction reference from your app.</p>
                 <div class="relative mt-3">
-                    <input type="text" name="transaction_id" value="{{ old('transaction_id') }}" placeholder="e.g. 1234 5678 9012" minlength="12" maxlength="120" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 pr-40 outline-none focus:border-brand">
-                    <span class="pointer-events-none absolute right-4 top-1/2 hidden -translate-y-1/2 text-[11px] font-bold uppercase tracking-wide text-slate-400 lg:inline">12 digits required</span>
+                    <input type="text" name="transaction_id" value="{{ old('transaction_id') }}" placeholder="e.g. 123456789012" minlength="12" maxlength="12" required class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 pr-40 outline-none focus:border-brand">
+                    <span class="pointer-events-none absolute right-4 top-1/2 hidden -translate-y-1/2 text-[11px] font-bold uppercase tracking-wide text-slate-400 lg:inline">12 characters required</span>
                 </div>
                 @error('transaction_id') <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p> @enderror
                 <p class="mt-2 text-sm font-semibold text-red-600" x-show="errors.transaction" x-cloak x-text="errors.transaction"></p>

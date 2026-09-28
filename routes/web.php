@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AccessController::class, 'showClientLogin'])->name('client.login');
 Route::post('/', [AccessController::class, 'submitClientPhone'])->name('client.login.phone');
-Route::get('/login', fn () => redirect()->route('client.login'));
+Route::get('/login', fn() => redirect()->route('client.login'));
 Route::post('/login', [AccessController::class, 'submitClientPhone']);
 
 Route::middleware('auth')->get('/featured-loans/{loan}/image', [FeaturedLoanController::class, 'image'])->name('featured-loans.image');
@@ -50,7 +50,7 @@ Route::middleware(['auth', 'customer'])->group(function () {
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminAuthController::class, 'create'])->name('login');
     Route::post('/', [AdminAuthController::class, 'store'])->name('login.store');
-    Route::get('/login', fn () => redirect()->route('admin.login'));
+    Route::get('/login', fn() => redirect()->route('admin.login'));
     Route::post('/login', [AdminAuthController::class, 'store']);
 
     Route::middleware(['auth', 'admin'])->group(function () {
@@ -69,14 +69,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/payments/{payment}', [AdminPaymentController::class, 'show'])->name('payments.show');
         Route::post('/payments/{payment}/approve', [AdminPaymentController::class, 'approve'])->name('payments.approve');
         Route::post('/payments/{payment}/reject', [AdminPaymentController::class, 'reject'])->name('payments.reject');
+        Route::delete('/payments/{payment}', [AdminPaymentController::class, 'destroy'])->name('payments.destroy');
         Route::get('/payments/{payment}/screenshot', [AdminPaymentController::class, 'screenshot'])->name('payments.screenshot');
 
-        Route::get('/payment-link', fn () => redirect()->route('admin.customers.index'))->name('payment-link.edit');
-        Route::put('/payment-link', fn () => redirect()->route('admin.customers.index'))->name('payment-link.update');
+        Route::get('/payment-link', fn() => redirect()->route('admin.customers.index'))->name('payment-link.edit');
+        Route::put('/payment-link', fn() => redirect()->route('admin.customers.index'))->name('payment-link.update');
         Route::get('/support-email', [SupportEmailController::class, 'edit'])->name('support-email.edit');
         Route::put('/support-email', [SupportEmailController::class, 'update'])->name('support-email.update');
-        Route::get('/payment-methods', fn () => redirect()->route('admin.customers.index'));
-        Route::get('/payment-methods/create', fn () => redirect()->route('admin.customers.index'));
-        Route::get('/payment-methods/{payment_method}/edit', fn () => redirect()->route('admin.customers.index'));
+        Route::get('/payment-methods', fn() => redirect()->route('admin.customers.index'));
+        Route::get('/payment-methods/create', fn() => redirect()->route('admin.customers.index'));
+        Route::get('/payment-methods/{payment_method}/edit', fn() => redirect()->route('admin.customers.index'));
     });
 });

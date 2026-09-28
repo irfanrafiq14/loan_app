@@ -27,7 +27,16 @@
                         <td class="px-4 py-3">{{ $payment->loan->title }}</td>
                         <td class="px-4 py-3">{{ $payment->transaction_id }}</td>
                         <td class="px-4 py-3">{{ $payment->status->label() }}</td>
-                        <td class="px-4 py-3 text-right"><a href="{{ route('admin.payments.show', $payment) }}" class="font-semibold text-brand">Review</a></td>
+                        <td class="px-4 py-3 text-right">
+                            <div class="inline-flex items-center gap-3">
+                                <a href="{{ route('admin.payments.show', $payment) }}" class="font-semibold text-brand">Review</a>
+                                <form method="POST" action="{{ route('admin.payments.destroy', $payment) }}" onsubmit="return confirm('Delete this payment history and its screenshot?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="font-semibold text-red-600">Delete</button>
+                                </form>
+                            </div>
+                        </td>
                     </tr>
                 @endforeach
             </tbody>

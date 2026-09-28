@@ -24,7 +24,7 @@ class StorePaymentRequest extends FormRequest
         return [
             'loan_id' => ['required', 'integer', Rule::exists('loans', 'id')],
             'payment_method_id' => ['required', 'integer', Rule::exists('payment_methods', 'id')->where('is_active', 1)],
-            'transaction_id' => ['required', 'string', 'min:12', 'max:120'],
+            'transaction_id' => ['required', 'string', 'size:12'],
             'screenshot' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ];
     }
@@ -34,7 +34,7 @@ class StorePaymentRequest extends FormRequest
         return [
             'payment_method_id.required' => 'Select a payment method.',
             'transaction_id.required' => 'Enter the transaction ID.',
-            'transaction_id.min' => 'The transaction ID must be at least 12 characters.',
+            'transaction_id.size' => 'The transaction ID must be exactly 12 characters.',
             'screenshot.required' => 'Upload a payment screenshot.',
             'screenshot.mimes' => 'Only JPG, JPEG, PNG, and WebP images are allowed.',
             'screenshot.max' => 'The payment screenshot may not be larger than 5 MB.',
