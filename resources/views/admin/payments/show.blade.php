@@ -27,7 +27,7 @@
                 @csrf
                 @method('PUT')
                 <label class="block text-sm font-semibold" for="screenshot">Replace screenshot</label>
-                <input id="screenshot" type="file" name="screenshot" accept="image/jpeg,image/png,image/webp" class="block w-full text-sm">
+                <input id="screenshot" type="file" name="screenshot" accept="image/jpeg,image/png,image/webp" class="block w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 p-2 text-sm file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-slate-900 file:px-4 file:py-2.5 file:font-bold file:text-white">
                 @error('screenshot') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
                 @if (filled($payment->screenshot_path))
                     <label class="flex items-center gap-2 text-sm">
@@ -35,7 +35,10 @@
                         Remove current screenshot
                     </label>
                 @endif
-                <button class="rounded-2xl brand-gradient px-4 py-2 text-sm font-bold text-white">Update screenshot</button>
+                <button class="flex w-full items-center justify-center gap-2 rounded-2xl brand-gradient px-5 py-3.5 text-base font-extrabold text-white shadow-md transition hover:brightness-105 focus:outline-none focus:ring-4 focus:ring-sky-200">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16.5V19a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2.5M12 15V4m0 0L8 8m4-4 4 4" /></svg>
+                    Update screenshot
+                </button>
             </form>
         </section>
     </div>

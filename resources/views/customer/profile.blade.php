@@ -46,7 +46,7 @@
                 </div>
             </section>
 
-            <x-support-link variant="card" :url="$supportGmailUrl">
+            <x-support-link variant="card" :url="\App\Support\AppBrand::gmailUrl(subject: 'Account support request')">
                 <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-brand">
                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 21a9 9 0 1 0-9-9 9 9 0 0 0 9 9Zm0-12V8m0 8h.01"/></svg>
                 </div>

@@ -82,7 +82,7 @@ class AppBrand
 
     public static function clientUrl(?string $appName = null): string
     {
-        return rtrim((string) config('app.url'), '/').'/';
+        return rtrim((string) config('app.url'), '/') . '/';
     }
 
     public static function localClientUrl(): string
@@ -91,13 +91,13 @@ class AppBrand
         $port = parse_url($appUrl, PHP_URL_PORT);
         $scheme = parse_url($appUrl, PHP_URL_SCHEME) ?: 'http';
 
-        $base = $scheme.'://127.0.0.1';
+        $base = $scheme . '://127.0.0.1';
 
         if ($port) {
-            $base .= ':'.$port;
+            $base .= ':' . $port;
         }
 
-        return $base.'/';
+        return $base . '/';
     }
 
     public static function brandedLocalUrl(User $customer): string
@@ -105,7 +105,7 @@ class AppBrand
         $base = self::localClientUrl();
         $token = $customer->appToken();
 
-        return $base.'?t='.$token;
+        return $base . '?t=' . $token;
     }
 
     public static function customerForApp(?string $appName): ?User
@@ -147,7 +147,7 @@ class AppBrand
         return $email !== '' ? $email : null;
     }
 
-    public static function gmailUrl(?string $email = null): ?string
+    public static function gmailUrl(?string $email = null, ?string $subject = null): ?string
     {
         $email = trim((string) ($email ?? self::supportEmail()));
 
@@ -155,9 +155,21 @@ class AppBrand
             return null;
         }
 
-        $subject = self::name() !== '' ? self::name().' support' : 'Support';
+        $subject = $subject ?: (self::name() !== '' ? self::name() . ' support' : 'Support');
+        $webUrl = 'https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=' . rawurlencode($email) . '&su=' . rawurlencode($subject);
 
-        return 'https://mail.google.com/mail/?view=cm&fs=1&tf=1&to='.rawurlencode($email).'&su='.rawurlencode($subject);
+        if (preg_match('/Android/i', (string) request()->userAgent())) {
+            return 'intent:#Intent;scheme=mailto;action=android.intent.action.SENDTO;package=com.google.android.gm'
+                . ';S.android.intent.extra.EMAIL=' . rawurlencode($email)
+                . ';S.android.intent.extra.SUBJECT=' . rawurlencode($subject)
+                . ';S.browser_fallback_url=' . rawurlencode($webUrl) . ';end';
+        }
+
+        if (preg_match('/iPhone|iPad|iPod/i', (string) request()->userAgent())) {
+            return 'googlegmail://co?to=' . rawurlencode($email) . '&subject=' . rawurlencode($subject);
+        }
+
+        return $webUrl;
     }
 
     private static function resolveName(): string
@@ -329,17 +341,17 @@ class AppBrand
         $letter = htmlspecialchars(self::initial($name), ENT_XML1 | ENT_QUOTES, 'UTF-8');
 
         $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
-            .'<rect width="64" height="64" rx="16" fill="#0EA5E9"/>';
+            . '<rect width="64" height="64" rx="16" fill="#0EA5E9"/>';
 
         if ($letter !== '') {
             $svg .= '<text x="32" y="43" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="800" fill="#ffffff">'
-                .$letter
-                .'</text>';
+                . $letter
+                . '</text>';
         }
 
         $svg .= '</svg>';
 
-        return 'data:image/svg+xml,'.rawurlencode($svg);
+        return 'data:image/svg+xml,' . rawurlencode($svg);
     }
 
     public static function sanitize(?string $name): string

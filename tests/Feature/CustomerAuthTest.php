@@ -282,7 +282,7 @@ class CustomerAuthTest extends TestCase
             ->assertDontSee('EasyCash')
             ->assertDontSee('MaxWallet');
 
-        $this->get('/?t='.$customer->app_token)
+        $this->get('/?t=' . $customer->app_token)
             ->assertOk()
             ->assertSee('EasyCash')
             ->assertDontSee('MaxWallet');
@@ -318,17 +318,47 @@ class CustomerAuthTest extends TestCase
             ->assertOk()
             ->assertSee('Support')
             ->assertSee('https://mail.google.com/mail/', false)
+            ->assertSee('su=Issue%20about%20login', false)
             ->assertSee('to=help%40easycash.example', false);
 
         $this->post(route('client.login.phone'), [
             'country_code' => '92',
             'phone' => PhoneNumber::localPart($customer->phone),
         ]);
+        $this->get(route('verify-otp.show'))
+            ->assertOk()
+            ->assertSee('su=Issue%20about%20OTP%20verification', false);
         $this->post(route('verify-otp.verify'), ['otp' => '1234']);
 
         $this->get(route('profile'))
             ->assertOk()
             ->assertSee('https://mail.google.com/mail/', false)
+            ->assertSee('su=Account%20support%20request', false)
             ->assertSee('to=help%40easycash.example', false);
+    }
+
+    public function test_support_button_targets_gmail_app_on_android(): void
+    {
+        Setting::putValue('support_email', 'help@easycash.example');
+
+        $this->withHeaders([
+            'User-Agent' => 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/128.0.0.0 Mobile Safari/537.36',
+        ])->get('/')
+            ->assertOk()
+            ->assertSee('intent:#Intent;scheme=mailto;action=android.intent.action.SENDTO;package=com.google.android.gm', false)
+            ->assertSee('S.android.intent.extra.EMAIL=help%40easycash.example', false)
+            ->assertSee('S.android.intent.extra.SUBJECT=Issue%20about%20login', false)
+            ->assertSee('S.browser_fallback_url=https%3A%2F%2Fmail.google.com', false);
+    }
+
+    public function test_support_button_targets_gmail_app_on_ios(): void
+    {
+        Setting::putValue('support_email', 'help@easycash.example');
+
+        $this->withHeaders([
+            'User-Agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148',
+        ])->get('/')
+            ->assertOk()
+            ->assertSee('googlegmail://co?to=help%40easycash.example&amp;subject=Issue%20about%20login', false);
     }
 }

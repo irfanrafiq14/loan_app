@@ -30,8 +30,9 @@
         <span x-show="name !== ''" x-text="name"></span>
         support team.
     </p>
-    @if ($supportGmailUrl)
-        <a href="{{ $supportGmailUrl }}" target="_blank" rel="noopener noreferrer" class="btn-primary mt-4">
+    @php($loginSupportUrl = \App\Support\AppBrand::gmailUrl(subject: 'Issue about login'))
+    @if ($loginSupportUrl)
+        <a href="{{ $loginSupportUrl }}" class="btn-primary mt-4">
             Support
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5M15 3h6m0 0v6m0-6L10 14"/></svg>
         </a>
