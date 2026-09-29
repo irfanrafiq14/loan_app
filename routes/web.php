@@ -67,6 +67,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
         Route::get('/payments/{payment}', [AdminPaymentController::class, 'show'])->name('payments.show');
+        Route::put('/payments/{payment}/screenshot', [AdminPaymentController::class, 'updateScreenshot'])->name('payments.screenshot.update');
         Route::post('/payments/{payment}/approve', [AdminPaymentController::class, 'approve'])->name('payments.approve');
         Route::post('/payments/{payment}/reject', [AdminPaymentController::class, 'reject'])->name('payments.reject');
         Route::delete('/payments/{payment}', [AdminPaymentController::class, 'destroy'])->name('payments.destroy');

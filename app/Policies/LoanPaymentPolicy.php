@@ -32,6 +32,11 @@ class LoanPaymentPolicy
         return $user->isAdmin();
     }
 
+    public function updateScreenshot(User $user, LoanPayment $payment): bool
+    {
+        return $user->isAdmin();
+    }
+
     public function delete(User $user, LoanPayment $payment): bool
     {
         return $user->isAdmin();

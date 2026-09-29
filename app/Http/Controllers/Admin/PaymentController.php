@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ReviewPaymentRequest;
+use App\Http\Requests\Admin\UpdatePaymentScreenshotRequest;
 use App\Models\LoanPayment;
 use App\Services\PaymentService;
 use Illuminate\Http\RedirectResponse;
@@ -81,6 +82,28 @@ class PaymentController extends Controller
             ->with('success', 'Payment rejected. The customer can see the reason.');
     }
 
+    public function updateScreenshot(UpdatePaymentScreenshotRequest $request, LoanPayment $payment): RedirectResponse
+    {
+        $this->authorize('updateScreenshot', $payment);
+
+        $oldPath = $payment->screenshot_path;
+
+        if ($request->hasFile('screenshot')) {
+            $newPath = $request->file('screenshot')->store('payment-screenshots/' . $payment->user_id, 'local');
+            $payment->forceFill(['screenshot_path' => $newPath])->save();
+        } else {
+            $payment->forceFill(['screenshot_path' => null])->save();
+        }
+
+        if (filled($oldPath)) {
+            Storage::disk('local')->delete($oldPath);
+        }
+
+        return redirect()
+            ->route('admin.payments.show', $payment)
+            ->with('success', $request->hasFile('screenshot') ? 'Payment screenshot updated.' : 'Payment screenshot removed.');
+    }
+
     public function destroy(LoanPayment $payment): RedirectResponse
     {
         $this->authorize('delete', $payment);
@@ -98,7 +121,7 @@ class PaymentController extends Controller
     {
         $this->authorize('viewScreenshot', $payment);
 
-        abort_unless($this->payments->screenshotExists($payment), 404);
+        abort_unless(filled($payment->screenshot_path) && $this->payments->screenshotExists($payment), 404);
 
         return Storage::disk('local')->response($payment->screenshot_path);
     }

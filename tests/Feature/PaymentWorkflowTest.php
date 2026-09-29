@@ -115,6 +115,8 @@ class PaymentWorkflowTest extends TestCase
 
         $this->get(route('admin.payments.show', $payment))
             ->assertOk()
+            ->assertSee('name="screenshot"', false)
+            ->assertSee('Remove current screenshot')
             ->assertSee('Delete current record');
 
         $this->actingAs($admin)
@@ -125,6 +127,56 @@ class PaymentWorkflowTest extends TestCase
         $this->assertDatabaseMissing('loan_payments', ['id' => $payment->id]);
         $this->assertDatabaseHas('loans', ['id' => $loan->id]);
         $this->assertFalse(Storage::disk('local')->exists($screenshotPath));
+    }
+
+    public function test_admin_can_replace_payment_screenshot_and_remove_the_old_file(): void
+    {
+        Storage::fake('local');
+
+        $admin = User::factory()->admin()->create();
+        $customer = User::factory()->customer()->create();
+        $loan = Loan::factory()->create(['user_id' => $customer->id]);
+        $oldPath = 'payment-screenshots/' . $customer->id . '/old-receipt.jpg';
+        Storage::disk('local')->put($oldPath, 'old screenshot');
+        $payment = LoanPayment::factory()->forLoan($loan)->create(['screenshot_path' => $oldPath]);
+
+        $this->actingAs($admin)
+            ->put(route('admin.payments.screenshot.update', $payment), [
+                'screenshot' => $this->fakeScreenshot('replacement.png'),
+            ])
+            ->assertRedirect(route('admin.payments.show', $payment))
+            ->assertSessionHas('success', 'Payment screenshot updated.');
+
+        $newPath = $payment->fresh()->screenshot_path;
+        $this->assertNotSame($oldPath, $newPath);
+        $this->assertFalse(Storage::disk('local')->exists($oldPath));
+        $this->assertTrue(Storage::disk('local')->exists($newPath));
+    }
+
+    public function test_admin_can_remove_payment_screenshot_without_deleting_payment(): void
+    {
+        Storage::fake('local');
+
+        $admin = User::factory()->admin()->create();
+        $customer = User::factory()->customer()->create();
+        $loan = Loan::factory()->create(['user_id' => $customer->id]);
+        $screenshotPath = 'payment-screenshots/' . $customer->id . '/receipt.jpg';
+        Storage::disk('local')->put($screenshotPath, 'screenshot contents');
+        $payment = LoanPayment::factory()->forLoan($loan)->create(['screenshot_path' => $screenshotPath]);
+
+        $this->actingAs($admin)
+            ->put(route('admin.payments.screenshot.update', $payment), ['remove_screenshot' => '1'])
+            ->assertRedirect(route('admin.payments.show', $payment))
+            ->assertSessionHas('success', 'Payment screenshot removed.');
+
+        $this->assertNull($payment->fresh()->screenshot_path);
+        $this->assertFalse(Storage::disk('local')->exists($screenshotPath));
+        $this->assertDatabaseHas('loan_payments', ['id' => $payment->id]);
+
+        $this->get(route('admin.payments.show', $payment))
+            ->assertOk()
+            ->assertSee('No screenshot uploaded.');
+        $this->get(route('admin.payments.screenshot', $payment))->assertNotFound();
     }
 
     public function test_customer_cannot_delete_payment_history(): void

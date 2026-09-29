@@ -16,9 +16,27 @@
         </section>
         <section class="rounded-3xl bg-white p-5 shadow-sm">
             <h2 class="font-bold">Payment screenshot</h2>
-            <a href="{{ route('admin.payments.screenshot', $payment) }}" target="_blank" class="mt-3 block overflow-hidden rounded-2xl bg-slate-50">
-                <img src="{{ route('admin.payments.screenshot', $payment) }}" alt="Payment screenshot" class="max-h-80 w-full object-contain">
-            </a>
+            @if (filled($payment->screenshot_path))
+                <a href="{{ route('admin.payments.screenshot', $payment) }}" target="_blank" class="mt-3 block overflow-hidden rounded-2xl bg-slate-50">
+                    <img src="{{ route('admin.payments.screenshot', $payment) }}" alt="Payment screenshot" class="max-h-80 w-full object-contain">
+                </a>
+            @else
+                <p class="mt-3 text-sm text-muted">No screenshot uploaded.</p>
+            @endif
+            <form method="POST" action="{{ route('admin.payments.screenshot.update', $payment) }}" enctype="multipart/form-data" class="mt-4 space-y-3 border-t border-slate-100 pt-4">
+                @csrf
+                @method('PUT')
+                <label class="block text-sm font-semibold" for="screenshot">Replace screenshot</label>
+                <input id="screenshot" type="file" name="screenshot" accept="image/jpeg,image/png,image/webp" class="block w-full text-sm">
+                @error('screenshot') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+                @if (filled($payment->screenshot_path))
+                    <label class="flex items-center gap-2 text-sm">
+                        <input type="checkbox" name="remove_screenshot" value="1" class="rounded border-slate-300">
+                        Remove current screenshot
+                    </label>
+                @endif
+                <button class="rounded-2xl brand-gradient px-4 py-2 text-sm font-bold text-white">Update screenshot</button>
+            </form>
         </section>
     </div>
 
